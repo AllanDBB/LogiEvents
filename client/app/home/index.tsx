@@ -12,7 +12,7 @@ import { useEvents } from "@/hooks/useEvents";
 function HomeScreen() {
   const router = useRouter();
   //TODO: Implement userRole state
-  const [userRole] = useState<userRole>("admin"); 
+  const [userRole] = useState<userRole>("user"); 
   const { width } = useWindowDimensions();
   const [isMobile, setIsMobile] = useState(false);
   

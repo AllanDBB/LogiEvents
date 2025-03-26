@@ -8,8 +8,8 @@ import {
   useColorScheme,
   useWindowDimensions
 } from 'react-native';
-import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
-import MenuPopup from './menuPopUp';  // Import the new popup component
+import { useRouter } from 'expo-router';
+import MenuPopup from './menuPopUp';
 
 type navProps = {
   children?: React.ReactNode;
@@ -21,7 +21,7 @@ function Navbar(props: navProps)  {
   const [isMobileMenuVisible, setMobileMenuVisible] = useState(false);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const router = useRouter(); // Using Expo Router
   const { width } = useWindowDimensions();
   const isMobile = width < 600;
 
@@ -40,7 +40,7 @@ function Navbar(props: navProps)  {
             <TouchableOpacity>
               <Text 
                 style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}
-                onPress={() => props.isLogged ? navigation.navigate('home') : navigation.navigate('auth/register')}
+                onPress={() => props.isLogged ? router.push("/") : router.push("/auth/register")}
               >
                 Inicio
               </Text>
@@ -58,7 +58,7 @@ function Navbar(props: navProps)  {
             <TouchableOpacity>
               <Text 
                 style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}
-                onPress={() => navigation.navigate('rules')}
+                onPress={() => router.push("/home" )}
               >
                 Políticas
               </Text>
@@ -67,11 +67,9 @@ function Navbar(props: navProps)  {
         )}
         
         <View style={styles.btnSection}>
-          {/*TODO: CHANGE ROUTES*/}
-          
           <TouchableOpacity 
             style={[styles.btnGeneral, styles.btn1, isDarkMode ? styles.darkBtn1 : styles.lightBtn1]}
-            onPress={() => props.isLogged ? navigation.navigate('home/events') : navigation.navigate('auth/login')}>
+            onPress={() => props.isLogged ? router.push("/home/events") : router.push("/auth/login")}>
             <Text style={[styles.btnSectionText, isDarkMode ? styles.darkBtn1Text : styles.lightBtn1Text]}>
               {props.isLogged ? 'Mis eventos' : 'Iniciar sesión'}
             </Text>
@@ -79,7 +77,7 @@ function Navbar(props: navProps)  {
           
           <TouchableOpacity 
             style={[styles.btnGeneral, styles.btn2, isDarkMode ? styles.darkBtn2 : styles.lightBtn2]}
-            onPress={() => props.isLogged ? navigation.navigate('home/profile') : navigation.navigate('auth/register')}
+            onPress={() => props.isLogged ? router.push("/home/profile") : router.push("/auth/register")}
           >
             <Text style={[styles.btnSectionText, isDarkMode ? styles.darkBtn2Text : styles.lightBtn2Text]}>
               {props.isLogged ? 'Perfil' : 'Registrarse'}

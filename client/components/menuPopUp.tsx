@@ -7,7 +7,7 @@ import {
   Modal, 
   useColorScheme 
 } from 'react-native';
-import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
+import { RelativePathString, useRouter } from 'expo-router'; 
 
 type MobileMenuPopupProps = {
   visible: boolean;
@@ -17,12 +17,12 @@ type MobileMenuPopupProps = {
 };
 
 export default function MenuPopup(props: MobileMenuPopupProps) {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const router = useRouter(); 
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const navigateTo = (screen: string) => {
-    navigation.navigate(screen);
+  const navigateTo = (route: string) => {
+    router.push(route as RelativePathString);
     props.onClose();
   };
 
@@ -58,25 +58,35 @@ export default function MenuPopup(props: MobileMenuPopupProps) {
 
               <TouchableOpacity 
                 style={styles.menuItem} 
-                onPress={() => props.isLogged ? navigateTo('home') : navigateTo('auth/register')}
+                onPress={() => props.isLogged ? navigateTo("/") : navigateTo("/auth/register")}
               >
                 <Text style={[styles.menuItemText, isDarkMode ? styles.darkText : styles.lightText]}>Inicio</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
                 style={styles.menuItem} 
-                onPress={() => {props.onEventClick()}}
+                onPress={() => {props.onEventClick(); props.onClose();}}
               >
                 <Text style={[styles.menuItemText, isDarkMode ? styles.darkText : styles.lightText]}>Eventos</Text>
               </TouchableOpacity>
 
+              {props.isLogged && (
+                <TouchableOpacity 
+                  style={styles.menuItem} 
+                  onPress={() => navigateTo("/home/profile")}
+                >
+                  <Text style={[styles.menuItemText, isDarkMode ? styles.darkText : styles.lightText]}>
+                    Perfil
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity 
                 style={styles.menuItem} 
-                onPress={() =>  navigateTo('rules') }
+                onPress={() => navigateTo("/rules")}
               >
                 <Text style={[styles.menuItemText, isDarkMode ? styles.darkText : styles.lightText]}>
-                  Politicas
+                  Políticas
                 </Text>
               </TouchableOpacity>
             </View>

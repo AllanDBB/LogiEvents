@@ -18,14 +18,17 @@ const bodyHandler = require('../handlers/bodyHandler');
 const secret = process.env.JWT_SECRET;
 const requireAuth = passport.authenticate('jwt', { session: false });
 
+// SMS:
+const { sendVerificationCode } = require('../services/smsService');
+
 // Register a new user:
 router.post('/register', async (req, res) => {
    
    try {
-        const check = ['firstName', 'lastName', 'email', 'password'];
+        const check = ['firstName', 'lastName', 'email', 'password', 'phoneNumber'];
         bodyHandler(check, req.body);
 
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, email, password, phoneNumber } = req.body;
 
         // Check if the user already exists
         const user = await User.findOne({ email });
@@ -46,15 +49,48 @@ router.post('/register', async (req, res) => {
             lastName,
             email,
             password: hashedPassword,
+            OTP: crypto.randomBytes(3).toString('hex'),
+            phoneNumber,
+            
         });
+
+        await sendVerificationCode(phoneNumber, newUser.OTP);
         
         await newUser.save();
 
         res.status(201).json(newUser);
     } catch (error){
         res.status(400).json({ error: error.message });
-   } 
-    
+   }  
+});
+
+router.post("/verify-code", async (req, res) => {
+
+    try {
+        const check = ['email', 'OTP'];
+        bodyHandler(check, req.body);
+
+        const { email, OTP } = req.body;
+
+        const user = await User.findOne({ email });
+
+        if (!user){
+            throw new Error('User does not exist');
+        }
+
+        if (user.OTP !== OTP){
+            throw new Error('Invalid OTP');
+        }
+
+        user.verified = true;
+
+        await user.save();
+
+        res.json({ message: 'User verified' });
+    }
+    catch (error){
+        res.status(400).json({ error: error.message });
+    }
 });
 
 router.post('/login', async (req, res) => {
@@ -66,8 +102,13 @@ router.post('/login', async (req, res) => {
 
         const user = await User.findOne({ email });
 
+
         if (!user){
             throw new Error('User does not exist');
+        }
+
+        if (!user.verified){
+            throw new Error('User is not verified');
         }
 
         const isMatch = await bcryptjs.compare(password, user.password);

@@ -15,7 +15,7 @@ const UserSchema = new Schema({
         type: String,
         required: false
     },    
-    email: {
+    email: { 
         type: String,
         required: true,
         unique: true
@@ -24,7 +24,24 @@ const UserSchema = new Schema({
         type: String,
         required: true
     },
-    
+    OTP: {
+        type: String,
+        required: false
+    },
+    phoneNumber: {
+        type: String,
+        required: true
+    },
+    verified: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    role: {
+        type: String,
+        required: true,
+        default: 'user'
+    }
 });
 
 module.exports = mongoose.model('User', UserSchema);
