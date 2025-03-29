@@ -7,6 +7,8 @@ export type User = {
   role: userRole;
   phone?: string;
   profileImage?: string;
+  createdAt: string;
+  updatedAt: string;
 };
   
 export type userRole = 'user' | 'admin';

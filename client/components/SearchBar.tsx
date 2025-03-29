@@ -5,7 +5,7 @@ import {
   TextInput, 
   TouchableOpacity 
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Importa el ícono de FontAwesome
+import Icon from 'react-native-vector-icons/FontAwesome'; 
 
 interface SearchBarProps {
   value: string;
@@ -17,12 +17,10 @@ interface SearchBarProps {
 function SearchBar(props: SearchBarProps) {
   return (
     <View style={props.searchStyles.container}>
-      {/* Contenedor para el ícono */}
       <TouchableOpacity style={props.searchStyles.iconContainer}>
         <Icon name="search" size={20} color="#6c757d" /> {/* Ícono de lupa */}
       </TouchableOpacity>
 
-      {/* Campo de texto */}
       <TextInput
         style={props.searchStyles.input}
         value={props.value}

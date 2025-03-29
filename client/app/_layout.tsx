@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import React from "react";
 import { StyleSheet, View } from "react-native";
+import ChatBotButton from "@/components/ChatBotButton";
 
 export default function RootLayout() {
   return (
@@ -11,6 +12,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/login" options={{ title: "Login" }} />
         <Stack.Screen name="auth/register" options={{ title: "Register" }} />
       </Stack>
+      <ChatBotButton />
     </View>
   );
 }

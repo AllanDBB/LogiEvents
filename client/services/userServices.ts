@@ -41,7 +41,7 @@ const userService = {
       const updatedUser: User = {
         ...users[0],
         ...userData,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toString()
       };
       return Promise.resolve(updatedUser);
     }

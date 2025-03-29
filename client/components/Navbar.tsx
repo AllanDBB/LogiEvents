@@ -11,97 +11,143 @@ import {
 import { useRouter } from 'expo-router';
 import MenuPopup from './menuPopUp';
 
-type navProps = {
+type NavbarProps = {
   children?: React.ReactNode;
   isLogged: boolean;
-  onEventClick: () => void;
 };
 
-function Navbar(props: navProps)  {
-  const [isMobileMenuVisible, setMobileMenuVisible] = useState(false);
+function Navbar({ children, isLogged }: NavbarProps) {
+  const router = useRouter();
   const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  const router = useRouter(); // Using Expo Router
   const { width } = useWindowDimensions();
+  const [isMobileMenuVisible, setMobileMenuVisible] = useState(false);
+  
+  const isDarkMode = colorScheme === 'dark';
   const isMobile = width < 600;
 
-  const toggleMobileMenu = () => {
-    setMobileMenuVisible(!isMobileMenuVisible);
+  // Event handlers
+  const toggleMobileMenu = () => setMobileMenuVisible(!isMobileMenuVisible);
+  
+  const handleHomeClick = () => {
+    if (isLogged) router.push("/home");
+    else router.push("/auth/register");
+  };
+  
+  const handleMyEventsClick = () => {
+    if (isLogged) router.push("/home/events/myEvents");
+    else router.push("/auth/login");
+  };
+  
+  const handleProfileClick = () => {
+    if (isLogged) router.push("/home/profile");
+    else router.push("/auth/register");
+  };
+  
+  const handlePoliciesClick = () => router.push("/home");
+
+  // Component renderers
+  const renderLogo = () => (
+    <Text style={[styles.logo, isDarkMode ? styles.darkText : styles.lightText]}>
+      LogiEvents
+    </Text>
+  );
+  
+  const renderNavLinks = () => {
+    if (isMobile) return null;
+    
+    return (
+      <View style={styles.navLinks}>
+        <TouchableOpacity onPress={handleHomeClick}>
+          <Text style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}>
+            Inicio
+          </Text>
+        </TouchableOpacity>
+        
+        {isLogged && <TouchableOpacity onPress={handleMyEventsClick}>
+          <Text style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}>
+            Eventos
+          </Text>
+        </TouchableOpacity>}
+        
+        <TouchableOpacity onPress={handlePoliciesClick}>
+          <Text style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}>
+            Políticas
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+  
+  const renderActionButtons = () => (
+    <View style={styles.btnSection}>
+      <TouchableOpacity 
+        style={[
+          styles.btnGeneral, 
+          styles.btn1, 
+          isDarkMode ? styles.darkBtn1 : styles.lightBtn1
+        ]}
+        onPress={handleMyEventsClick}
+      >
+        <Text style={[
+          styles.btnSectionText, 
+          isDarkMode ? styles.darkBtn1Text : styles.lightBtn1Text
+        ]}>
+          {isLogged ? 'Mis eventos' : 'Iniciar sesión'}
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={[
+          styles.btnGeneral, 
+          styles.btn2, 
+          isDarkMode ? styles.darkBtn2 : styles.lightBtn2
+        ]}
+        onPress={handleProfileClick}
+      >
+        <Text style={[
+          styles.btnSectionText, 
+          isDarkMode ? styles.darkBtn2Text : styles.lightBtn2Text
+        ]}>
+          {isLogged ? 'Perfil' : 'Registrarse'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+  
+  const renderMobileMenuButton = () => {
+    if (!isMobile) return null;
+    
+    return (
+      <TouchableOpacity style={styles.menuButton} onPress={toggleMobileMenu}>
+        <Text style={[styles.menuText, isDarkMode ? styles.darkText : styles.lightText]}>
+          ☰
+        </Text>
+      </TouchableOpacity>
+    );
   };
 
   return (
-    <SafeAreaView style={[styles.container, isDarkMode ? styles.darkContainer : styles.lightContainer]}>
-      
+    <SafeAreaView style={[
+      styles.container, 
+      isDarkMode ? styles.darkContainer : styles.lightContainer
+    ]}>
       <View style={styles.header}>
-        <Text style={[styles.logo, isDarkMode ? styles.darkText : styles.lightText]}>LogiEvents</Text>
-        
-        {!isMobile && (
-          <View style={styles.navLinks}>
-            <TouchableOpacity>
-              <Text 
-                style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}
-                onPress={() => props.isLogged ? router.push("/") : router.push("/auth/register")}
-              >
-                Inicio
-              </Text>
-            </TouchableOpacity>
-          
-            <TouchableOpacity>
-              <Text 
-                style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}
-                onPress={props.onEventClick}
-              >
-                Eventos
-              </Text>
-            </TouchableOpacity>
-          
-            <TouchableOpacity>
-              <Text 
-                style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}
-                onPress={() => router.push("/home" )}
-              >
-                Políticas
-              </Text>
-            </TouchableOpacity>
-          </View> 
-        )}
-        
-        <View style={styles.btnSection}>
-          <TouchableOpacity 
-            style={[styles.btnGeneral, styles.btn1, isDarkMode ? styles.darkBtn1 : styles.lightBtn1]}
-            onPress={() => props.isLogged ? router.push("/home/events") : router.push("/auth/login")}>
-            <Text style={[styles.btnSectionText, isDarkMode ? styles.darkBtn1Text : styles.lightBtn1Text]}>
-              {props.isLogged ? 'Mis eventos' : 'Iniciar sesión'}
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.btnGeneral, styles.btn2, isDarkMode ? styles.darkBtn2 : styles.lightBtn2]}
-            onPress={() => props.isLogged ? router.push("/home/profile") : router.push("/auth/register")}
-          >
-            <Text style={[styles.btnSectionText, isDarkMode ? styles.darkBtn2Text : styles.lightBtn2Text]}>
-              {props.isLogged ? 'Perfil' : 'Registrarse'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        {isMobile && (
-          <TouchableOpacity style={styles.menuButton} onPress={toggleMobileMenu}>
-            <Text style={[styles.menuText, isDarkMode ? styles.darkText : styles.lightText]}>☰</Text>
-          </TouchableOpacity>
-        )}
+        {renderLogo()}
+        {renderNavLinks()}
+        {renderActionButtons()}
+        {renderMobileMenuButton()}
       </View>
       
-      {props.children}
+      {children}
 
       <MenuPopup 
         visible={isMobileMenuVisible} 
         onClose={toggleMobileMenu} 
-        isLogged={props.isLogged} 
-        onEventClick={props.onEventClick}
+        isLogged={isLogged} 
       />
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

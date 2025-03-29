@@ -16,71 +16,65 @@ interface CategoryTabsProps {
   onSelectCategory: (category: EventCategory) => void;
 }
 
-function CategoryTabs(props: CategoryTabsProps) {
+function CategoryTabs({ categories, selectedCategory, onSelectCategory }: CategoryTabsProps) {
+  // Hooks
   const { width } = useWindowDimensions();
   const [isMobile, setIsMobile] = useState(false);
   
+  // Set mobile view based on screen width
   useEffect(() => {
     setIsMobile(width < 768);
   }, [width]);
-  //Mobile
-  if (isMobile) {
-    return (
-      <View style={tabStyles.wrapContainer}>
-        <FlatList
-          data={props.categories}
-          horizontal={false}
-          numColumns={2}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item}
-          contentContainerStyle={tabStyles.mobileListContainer}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                tabStyles.mobileTab,
-                props.selectedCategory === item && tabStyles.selectedMobileTab
-              ]}
-              onPress={() => props.onSelectCategory(item)}
-            >
-              <Text 
-                style={props.selectedCategory === item ? tabStyles.selectedText : tabStyles.tabText}
-                numberOfLines={1}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-    );
-  }
 
-  // Web
-  return (
+  // Render individual tab button
+  const renderTabButton = (category: EventCategory, isMobileView: boolean) => (
+    <TouchableOpacity
+      key={category}
+      style={[
+        isMobileView ? tabStyles.mobileTab : tabStyles.tab,
+        selectedCategory === category && 
+          (isMobileView ? tabStyles.selectedMobileTab : tabStyles.selectedTab)
+      ]}
+      onPress={() => onSelectCategory(category)}
+    >
+      <Text 
+        style={selectedCategory === category ? tabStyles.selectedText : tabStyles.tabText}
+        numberOfLines={1}
+      >
+        {category}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // Render mobile view with grid layout
+  const renderMobileView = () => (
+    <View style={tabStyles.wrapContainer}>
+      <FlatList
+        data={categories}
+        horizontal={false}
+        numColumns={2}
+        showsVerticalScrollIndicator={false}
+        keyExtractor={(item) => item}
+        contentContainerStyle={tabStyles.mobileListContainer}
+        renderItem={({ item }) => renderTabButton(item, true)}
+      />
+    </View>
+  );
+
+  // Render web view with horizontal scroll
+  const renderWebView = () => (
     <ScrollView 
       horizontal 
       showsHorizontalScrollIndicator={false} 
       contentContainerStyle={tabStyles.scrollContainer}
     >
       <View style={tabStyles.container}>
-        {props.categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            style={[
-              tabStyles.tab,
-              props.selectedCategory === category && tabStyles.selectedTab
-            ]}
-            onPress={() => props.onSelectCategory(category)}
-          >
-            <Text style={props.selectedCategory === category ? tabStyles.selectedText : tabStyles.tabText}>
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {categories.map((category) => renderTabButton(category, false))}
       </View>
     </ScrollView>
   );
+
+  return isMobile ? renderMobileView() : renderWebView();
 }
 
 const tabStyles = StyleSheet.create({
@@ -117,7 +111,6 @@ const tabStyles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  // Estilos para móvil
   mobileListContainer: {
     paddingVertical: 8,
     paddingHorizontal: 8,

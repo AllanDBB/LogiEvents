@@ -10,6 +10,7 @@ app.use(express.json());
 
 // Load routers
 const authRouter = require('./routes/auth');
+const userRouter = require('./routes/user');
 
 app.use(express.json());
 
@@ -22,6 +23,7 @@ mongoose.connect(process.env.DATABASE_URL, {
 
 
 app.use(`/auth`, authRouter);
+app.use(`/user`, userRouter);
 
 
 app.listen(PORT, () => {

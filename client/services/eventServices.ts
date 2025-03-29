@@ -4,6 +4,7 @@ import api from './api';
 import type { Event, EventCategory } from '@/models/event';
 import allEvents from '@/mockups/allEvents'; 
 import myEvents from '@/mockups/adminEvents'; 
+import  userService  from '@/services/userServices';
 
 const USE_MOCK = true;
 
@@ -34,7 +35,11 @@ const eventsService = {
       return Promise.resolve(myEvents);
     }
     
-    const response = await api.get('/events/user');
+    const user = await userService.getCurrentUser();
+    if (!user) {  
+      return [];
+    }
+    const response = await api.get(`/events/user/${user.id}`);
     return response.data;
   },
 

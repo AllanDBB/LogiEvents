@@ -7,6 +7,7 @@ export function useUser() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Load current user
   const loadCurrentUser = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -22,6 +23,7 @@ export function useUser() {
     }
   }, []);
 
+  // Update user profile
   const updateProfile = useCallback(async (userData: UserUpdateData) => {
     setLoading(true);
     setError(null);
@@ -41,6 +43,7 @@ export function useUser() {
     }
   }, []);
 
+  // Change user password
   const changePassword = useCallback(async (oldPassword: string, newPassword: string) => {
     setLoading(true);
     setError(null);
@@ -60,6 +63,7 @@ export function useUser() {
     }
   }, []);
 
+    // Logout user
   const logout = useCallback(async () => {
     setLoading(true);
     setError(null);

@@ -10,13 +10,13 @@ const router = express.Router();
 
 // Import models
 const User = require('../models/user');
+const OTP = require('../models/otp');
 
 // Import handlers
 const bodyHandler = require('../handlers/bodyHandler');
 
 // Constants
 const secret = process.env.JWT_SECRET;
-const requireAuth = passport.authenticate('jwt', { session: false });
 
 // SMS:
 const { sendVerificationCode } = require('../services/smsService');
@@ -49,12 +49,24 @@ router.post('/register', async (req, res) => {
             lastName,
             email,
             password: hashedPassword,
-            OTP: crypto.randomBytes(3).toString('hex'),
             phoneNumber,
             
         });
 
-        await sendVerificationCode(phoneNumber, newUser.OTP);
+        // Create OTP
+        const OTPCode = crypto.randomInt(100000, 999999);
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+        const newOTP = new OTP({
+            code: OTPCode,
+            userId: newUser._id,
+            expiresAt
+        });
+
+        await newOTP.save();
+
+        await sendVerificationCode(phoneNumber, newOTP.code);
         
         await newUser.save();
 
@@ -66,11 +78,11 @@ router.post('/register', async (req, res) => {
 
 router.post("/verify-code", async (req, res) => {
 
-    try {
+    try {   
         const check = ['email', 'OTP'];
         bodyHandler(check, req.body);
 
-        const { email, OTP } = req.body;
+        const { email, code } = req.body;
 
         const user = await User.findOne({ email });
 
@@ -78,8 +90,14 @@ router.post("/verify-code", async (req, res) => {
             throw new Error('User does not exist');
         }
 
-        if (user.OTP !== OTP){
-            throw new Error('Invalid OTP');
+        if (user.verified){
+            throw new Error('User is already verified');
+        }
+
+        const otp = await OTP.findOne({ userId: user._id, code: code, used: false });
+
+        if (!otp){
+            throw new Error('Invalid OTP code');
         }
 
         user.verified = true;

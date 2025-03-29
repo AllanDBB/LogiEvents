@@ -8,6 +8,7 @@ const users: User[] = [
     fullname: "Nombre Apellido Apellido",
     email: "micorreo@gmail.com",
     role: "user",
+    profileImage: "https://www.kasandbox.org/programming-images/avatars/leaf-blue.png",
     phone: "+506 8812 3456",
     createdAt: "2023-10-15T14:30:00Z",
     updatedAt: "2024-02-20T09:45:00Z"
@@ -31,7 +32,7 @@ const users: User[] = [
     email: "maria.rodriguez@gmail.com",
     role: "user",
     phone: "+506 6543 2109",
-    profileImage: "https://example.com/profiles/maria.jpg",
+    profileImage: "https://www.kasandbox.org/programming-images/avatars/leaf-blue.png",
     createdAt: "2023-12-12T08:10:00Z",
     updatedAt: "2024-03-05T11:20:00Z"
   },
@@ -43,6 +44,7 @@ const users: User[] = [
     email: "carlos.jimenez@gmail.com",
     role: "admin",
     phone: "+506 7890 1234",
+    profileImage: "https://www.kasandbox.org/programming-images/avatars/leaf-yellow.png",
     createdAt: "2024-01-20T13:45:00Z",
     updatedAt: "2024-02-28T15:15:00Z"
   }

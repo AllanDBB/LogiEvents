@@ -12,7 +12,7 @@ export default function HomeScreen() {
   
   return (
     <View style={styles.main}>
-      <Navbar isLogged={false} onEventClick={() => {}} />
+      <Navbar isLogged={false} />
       <View style={styles.container}>
         
         <Text style={styles.title}>Welcome to LogiEvents</Text>
