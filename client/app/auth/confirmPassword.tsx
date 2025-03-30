@@ -4,7 +4,7 @@ import BackArrow from "@/components/BackArrow";
 import { useRouter } from "expo-router";
 
 
-export default function RequestPassword() {
+export default function ConfirmPassword() {
     const router = useRouter(); 
     
   const { width } = useWindowDimensions();
@@ -20,22 +20,25 @@ export default function RequestPassword() {
         <View style={isMobile ? styles.centerContainerMobile : styles.centerContainerDesktop}>
           <View style={styles.headerContainer}>
             <Text style={styles.title}>LogiEvents</Text>
-            <Text style={styles.subtitle}>Solicitar cambio de contraseña</Text>
+            <Text style={styles.subtitle}>Cambio de contraseña</Text>
           </View>
 
-          <Text style={styles.label}>Identificación</Text>
+          <Text style={styles.label}>Nueva contraseña</Text>
           <TextInput
             style={styles.input}
             keyboardType="default"
+            secureTextEntry={true}
+
           />
 
-          <Text style={styles.label}>Correo electrónico</Text>
+          <Text style={styles.label}>Confirma la contraseña</Text>
           <TextInput
             style={styles.input}
-            keyboardType="email-address"
+            keyboardType="default"
+            secureTextEntry={true}
           />
 
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/auth/confirmPassword')}>
+          <TouchableOpacity style={styles.button} onPress={() => console.log('Cambiar ahora')}>
             <Text style={styles.buttonText}>Cambiar ahora</Text>
           </TouchableOpacity>
         </View>
