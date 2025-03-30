@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 
@@ -9,10 +9,41 @@ const CreateEvent = () => {
   const [capacity, setCapacity] = useState('');
   const [price, setPrice] = useState('');
   const [date, setDate] = useState('');
+  const [formattedDate, setFormattedDate] = useState('');
   const [time, setTime] = useState('');
   const [image, setImage] = useState(null);
 
-  // Validación para capacidad (solo números enteros)
+
+  useEffect(() => {
+    if (date.length === 8 && !date.includes('/')) {
+      const day = date.substring(0, 2);
+      const month = date.substring(2, 4);
+      const year = date.substring(4, 8);
+      setFormattedDate(`${day}/${month}/${year}`);
+    }
+  }, [date]);
+
+  const handleDateChange = (text) => {
+   
+    const numericValue = text.replace(/[^0-9]/g, '');
+    
+ 
+    const truncatedValue = numericValue.slice(0, 8);
+    
+
+    let formatted = '';
+    if (truncatedValue.length > 4) {
+      formatted = `${truncatedValue.substring(0, 2)}/${truncatedValue.substring(2, 4)}/${truncatedValue.substring(4)}`;
+    } else if (truncatedValue.length > 2) {
+      formatted = `${truncatedValue.substring(0, 2)}/${truncatedValue.substring(2)}`;
+    } else {
+      formatted = truncatedValue;
+    }
+    
+    setDate(numericValue);
+    setFormattedDate(formatted);
+  };
+
   const handleCapacityChange = (text) => {
     const numericRegex = /^[0-9]*$/;
     if (numericRegex.test(text)) {
@@ -20,7 +51,7 @@ const CreateEvent = () => {
     }
   };
 
-  // Validación para precio (números con hasta 2 decimales)
+  
   const handlePriceChange = (text) => {
     const decimalRegex = /^[0-9]*(\.[0-9]{0,2})?$/;
     if (decimalRegex.test(text)) {
@@ -41,15 +72,6 @@ const CreateEvent = () => {
     value: `${i}:00`,
   }));
 
-  const dates = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    return {
-      label: date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }),
-      value: date.toISOString().split('T')[0],
-    };
-  });
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.eventContainer}>
@@ -62,13 +84,17 @@ const CreateEvent = () => {
         </TouchableOpacity>
 
         <View style={styles.detailsContainer}>
-          <Text style={styles.adminText}>Creando nuevo evento</Text>
+          <Text style={styles.adminText}>Crear nuevo evento</Text>
+
+
           <TextInput
             style={styles.eventTitle}
             value={eventName}
-            onChangeText={setEventName}
+            onChangeText={setEventName} 
             placeholder="NOMBRE DEL EVENTO"
-            placeholderTextColor="#E74C3C"
+            placeholderTextColor="#5FAA9D"
+            editable={true} 
+            maxLength={60} 
           />
 
           <View style={styles.infoContainer}>
@@ -97,14 +123,16 @@ const CreateEvent = () => {
             </View>
 
             <View style={styles.infoColumn}>
-              <View style={styles.pickerWrapper}>
-                <Text style={styles.pickerIcon}>🗓️</Text>
-                <RNPickerSelect
-                  onValueChange={(value) => setDate(value)}
-                  items={dates}
-                  placeholder={{ label: 'Selecciona fecha', value: null }}
-                  style={pickerSelectStyles}
-                  value={date}
+              <View style={styles.inputWithIcon}>
+                <Text style={styles.inputIcon}>🗓️</Text>
+                <TextInput
+                  style={styles.infoInput}
+                  value={formattedDate}
+                  onChangeText={handleDateChange}
+                  placeholder="DD/MM/AAAA"
+                  placeholderTextColor="#777"
+                  keyboardType="number-pad"
+                  maxLength={10}
                 />
               </View>
               
@@ -140,7 +168,7 @@ const CreateEvent = () => {
                 style={styles.priceInput}
                 value={price}
                 onChangeText={handlePriceChange}
-                placeholder="Precio (ej: 25.99)"
+                placeholder="Precio"
                 placeholderTextColor="#777"
                 keyboardType="decimal-pad"
               />
@@ -164,7 +192,7 @@ const CreateEvent = () => {
   );
 };
 
-// (Los estilos pickerSelectStyles y styles permanecen IGUAL que en tu versión anterior)
+
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 14,
@@ -223,7 +251,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 27,
     fontWeight: 'bold',
-    color: '#E74C3C',
+    color: '#5FAA9D',
     marginBottom: 20,
     paddingVertical: 5,
   },
@@ -295,7 +323,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   createButton: {
-    backgroundColor: '#2ECC71',
+    backgroundColor: '#5FAA9D',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -309,4 +337,5 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
+
 export default CreateEvent;
