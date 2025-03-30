@@ -43,7 +43,7 @@ function Navbar({ children, isLogged }: NavbarProps) {
     else router.push("/auth/register");
   };
   
-  const handlePoliciesClick = () => router.push("/home");
+  const handlePoliciesClick = () => router.push("/policies");
 
   // Component renderers
   const renderLogo = () => (

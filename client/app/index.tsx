@@ -1,15 +1,13 @@
 import { StyleSheet, View, Text, ImageBackground, TouchableOpacity } from 'react-native';
-import Navbar from '@/components/Navbar';
 import React from 'react';
 import { useRouter } from "expo-router";
+import MainPageContainer from '@/components/MainPageContainer';
 
-
-export default function Header() {
-    const router = useRouter(); 
+export default function LandingPage() {
+  const router = useRouter(); 
   
   return (
-    <View style={styles.container}>
-      <Navbar isLogged={false} />
+    <MainPageContainer isAuthenticated={false} showNavbar={true} showFooter={false} showChatButton={false}>
       <ImageBackground
         source={require('@/assets/images/fondo_header.webp')}
         style={styles.imageBackground}
@@ -20,24 +18,19 @@ export default function Header() {
           <Text style={styles.subtitle}>
             A tan solo un click de <Text style={styles.bold}>una nueva experiencia</Text>
           </Text>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}
-              onPress={() => router.push('/auth/login')} 
-
-            >Ir ahora</Text>
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={() => router.push('/auth/login')} 
+          >
+            <Text style={styles.buttonText}>Ir ahora</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
-    </View>
+    </MainPageContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   imageBackground: {
     flex: 1,
     width: '100%',

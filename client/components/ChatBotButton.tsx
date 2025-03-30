@@ -7,17 +7,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-/**
- * A floating action button that provides chat assistance
- * This component appears at the bottom right of the screen
- */
+
 function ChatBotButton() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   
   // Function to handle chat button press
   const handleChatPress = () => {
-    // In a real implementation, this would open the chat interface
     console.log('Chat button pressed');
   };
 
