@@ -5,8 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  SafeAreaView,
-  ScrollView,
   ActivityIndicator,
   Alert,
   useWindowDimensions,
@@ -16,6 +14,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@/hooks/useUser";
 import RoleIndicator from "@/components/RoleIndicator";
+import MainPageContainer from "@/components/MainPageContainer";
 
 export default function ProfileScreen() {
   // Hooks
@@ -62,7 +61,7 @@ export default function ProfileScreen() {
   const handleSave = async () => {
     // Validate required fields
     if (!name || !lastname || !email) {
-      Alert.alert("Error", "Please complete all required fields");
+      Alert.alert("Error", "Por favor complete todos los campos");
       return;
     }
 
@@ -78,12 +77,12 @@ export default function ProfileScreen() {
       
       if (success) {
         setIsEditing(false);
-        Alert.alert("Success", "Profile updated successfully");
+        Alert.alert("Success", "Perfil actualizado correctamente");
       } else {
-        Alert.alert("Error", "Failed to update profile");
+        Alert.alert("Error", "Un error ocurrió al actualizar el perfil");
       }
     } catch (err) {
-      Alert.alert("Error", "An error occurred while updating the profile");
+      Alert.alert("Error", "Un error ocurrió al actualizar el perfil");
       console.error(err);
     } finally {
       setIsSaving(false);
@@ -100,7 +99,7 @@ export default function ProfileScreen() {
   };
 
   const handleChangePassword = () => {
-    Alert.alert("TODO", "Change Password feature will be implemented later");
+    Alert.alert("TODO", "Implementar cambio de contraseña");
   };
 
   // Render functions
@@ -155,7 +154,7 @@ export default function ProfileScreen() {
   );
 
   const renderEditingActions = () => (
-    <>
+    <View>
       <TouchableOpacity 
         style={[styles.actionButton, styles.saveButton]} 
         onPress={handleSave}
@@ -175,7 +174,7 @@ export default function ProfileScreen() {
       >
         <Text style={styles.cancelButtonText}>Cancelar</Text>
       </TouchableOpacity>
-    </>
+    </View>
   );
 
   const renderViewingActions = () => (
@@ -212,53 +211,47 @@ export default function ProfileScreen() {
   // Loading state
   if (loading && !user) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#D9D9D9" />
-        <Text style={styles.loadingText}>Cargando Perfil...</Text>
-      </SafeAreaView>
+      <MainPageContainer showNavbar={false} showFooter={false}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#D9D9D9" />
+          <Text style={styles.loadingText}>Cargando Perfil...</Text>
+        </View>
+      </MainPageContainer>
     );
   }
 
   // Error state
   if (error && !user) {
     return (
-      <SafeAreaView style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error al cargar el perfil</Text>
-        <TouchableOpacity style={styles.errorButton} onPress={handleBack}>
-          <Text style={styles.errorButtonText}>Regresar</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      <MainPageContainer showNavbar={false} showFooter={false}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Error al cargar el perfil</Text>
+          <TouchableOpacity style={styles.errorButton} onPress={handleBack}>
+            <Text style={styles.errorButtonText}>Regresar</Text>
+          </TouchableOpacity>
+        </View>
+      </MainPageContainer>
     );
   }
 
   // Main content
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.contentContainer,
-          !isMobile ? styles.webContentContainer : null
-        ]}
-      >
+    <MainPageContainer>
+      <View style={[
+        styles.contentContainer,
+        !isMobile ? styles.webContentContainer : null
+      ]}>
         {renderHeader()}
         {user ? <RoleIndicator role={user.role} /> : null}
         {renderProfileSection()}
         {renderForm()}
         {renderActions()}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </MainPageContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  scrollView: {
-    flex: 1,
-  },
   contentContainer: {
     padding: 16,
   },
@@ -405,7 +398,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
   },
   loadingText: {
     marginTop: 12,
@@ -417,7 +409,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f8f9fa',
   },
   errorText: {
     fontSize: 16,

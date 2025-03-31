@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   useWindowDimensions,
   ActivityIndicator,
@@ -14,7 +13,7 @@ import { useRouter } from "expo-router";
 import ProfileCard from "@/components/ProfileCard";
 import SearchBar from "@/components/SearchBar";
 import EventCard from "@/components/EventCard";
-import ScrollbarStyles from "@/components/ScrollbarStyles";
+import MainPageContainer from "@/components/MainPageContainer";
 import { useUser } from "@/hooks/useUser";
 import { useEvents } from "@/hooks/useEvents";
 import type { Event } from "@/models/event";
@@ -45,7 +44,6 @@ export default function MyEventsScreen() {
 
   // Responsive layout setup with improved web detection
   useEffect(() => {
-    // Use both current width and innerWidth for web browsers
     const screenWidth = 
       Platform.OS === 'web' && typeof window !== 'undefined' 
         ? Math.min(width, window.innerWidth) 
@@ -108,24 +106,21 @@ export default function MyEventsScreen() {
 
   if (loading && filteredEvents.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ScrollbarStyles />
-        <View style={styles.contentContainer}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#D9D9D9" />
-            <Text style={styles.loadingText}>Cargando mis eventos...</Text>
-          </View>
+      <MainPageContainer showNavbar={false} showFooter={false}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#D9D9D9" />
+          <Text style={styles.loadingText}>Cargando mis eventos...</Text>
         </View>
-      </SafeAreaView>
+      </MainPageContainer>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollbarStyles />
+    <MainPageContainer>
       <TouchableOpacity onPress={handleBack} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#000" />
       </TouchableOpacity>
+      
       <View style={styles.contentContainer}>
         {isMobile ? (
           <View style={styles.headerMobile}>
@@ -219,15 +214,11 @@ export default function MyEventsScreen() {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </MainPageContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
   backButton: {
     padding: 8,
     marginLeft: 16,
@@ -293,18 +284,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     position: 'relative',
-    width: '100%',
-  },
-  gridContainer: {
-    paddingBottom: 20,
-    paddingHorizontal: 0,
-    width: '100%',
-    alignSelf: 'stretch',
-  },
-  columnWrapper: {
-    justifyContent: "flex-start",
-    marginBottom: 2,
-    flexWrap: 'wrap',
     width: '100%',
   },
   loadingContainer: {

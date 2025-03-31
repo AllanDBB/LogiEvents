@@ -3,13 +3,12 @@ import React from "react";
 import { useRouter } from "expo-router";
 import BackArrow from "@/components/BackArrow";
 
-export default function Register() {
+export default function RegisterAdmin() {
   const router = useRouter(); 
 
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
-
         <BackArrow onPress={() => router.back()} />
         <Text style={styles.title}>LogiEvents</Text>
         <Text style={styles.subtitle}>Creemos experiencias juntos</Text>
@@ -72,14 +71,34 @@ export default function Register() {
           </View>
         </View>
 
+        <View style={styles.row}>
+          <View style={styles.column}>
+            <Text style={styles.label4}>Rol de empresa</Text>
+            <TextInput
+              style={styles.inputSmall}
+              placeholder="Marketing"
+              placeholderTextColor="#A9A9A9"
+              keyboardType="default"
+            />
+          </View>
+          <View style={styles.column}>
+            <Text style={styles.label4}>ID de empresa</Text>
+            <TextInput
+              style={styles.inputSmall}
+              placeholder="LD2345"
+              placeholderTextColor="#A9A9A9"
+              keyboardType="default"
+            />
+          </View>
+        </View>
+
         <Text style={styles.termsText}>
           Al registrarse acepta nuestros <Text style={styles.boldUnderline}>Términos de uso</Text> y <Text style={styles.boldUnderline}>Políticas de privacidad</Text>.
         </Text>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/home')}>
-  <Text style={styles.buttonText}>Continuar</Text>
-</TouchableOpacity>
-
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Continuar</Text>
+        </TouchableOpacity>
 
         <View style={styles.linkContainer}>
           <Text style={styles.linkText}>
@@ -109,10 +128,10 @@ export default function Register() {
               style={styles.rightImage}
               resizeMode="contain"
             />
-            <Text style={styles.organizerTitle}>¿Organizador?</Text>
+            <Text style={styles.organizerTitle}>¿Cliente?</Text>
             <TouchableOpacity
               style={styles.organizerButton}
-              onPress={() => router.push('/auth/registerAdmin')} 
+              onPress={() => router.push('/auth/register')} 
             >
               <Text style={styles.organizerButtonText}>Ir ahora</Text>
             </TouchableOpacity>
@@ -204,7 +223,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 25,
+    marginBottom: 5,
   },
   
   label: {
@@ -222,7 +241,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     alignSelf: 'flex-start',
     marginLeft: '1%',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   
   label3: {
@@ -231,7 +250,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     alignSelf: 'flex-start',
     marginLeft: '1%',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   
   label4: {
@@ -240,7 +259,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     alignSelf: 'flex-start',
     marginLeft: '1%',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   
   input: {
@@ -274,7 +293,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: 14,
     color: 'black',
-    marginBottom: 6,
+    marginBottom: -1,
   },
   
   button: {
@@ -282,7 +301,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 80,
     borderRadius: 20,
-    marginTop: 20,
+    marginTop: -5,
   },
   
   buttonText: {
@@ -306,7 +325,7 @@ const styles = StyleSheet.create({
   },
   
   linkContainer: {
-    marginTop: 10, 
+    marginTop: 5, 
     alignItems: 'center', 
     width: '100%',
   },
