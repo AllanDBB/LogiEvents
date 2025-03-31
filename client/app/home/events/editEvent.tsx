@@ -1,3 +1,4 @@
+import MainPageContainer from '@/components/MainPageContainer';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
@@ -66,7 +67,7 @@ const EditEvent = () => {
   }));
 
   return (
-    
+    <MainPageContainer>
     <ScrollView style={styles.container}>
       <View style={styles.eventContainer}>
         <TouchableOpacity style={styles.imagePlaceholder}>
@@ -167,12 +168,21 @@ const EditEvent = () => {
             
           
 
-          <TouchableOpacity style={styles.createButton}>
-            <Text style={styles.createButtonText}>¡Crear evento!</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.createButton}>
+              <Text style={styles.createButtonText}>Guardar cambios</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.createButton}>
+              <Text style={styles.createButtonText}>Eliminar evento</Text>
+            </TouchableOpacity>
+          </View>
+
+
         </View>
       </View>
     </ScrollView>
+    </MainPageContainer>
   );
 };
 
@@ -311,20 +321,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlignVertical: 'top',
   },
+  buttonContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    marginTop: 20, 
+  },
   createButton: {
     backgroundColor: '#5FAA9D',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
-    minWidth: 400,
-    maxWidth: 400,
-    alignSelf: 'center',
+    flex: 1,
+    marginHorizontal: 10,
   },
   createButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
   },
+  
 });
 
 export default EditEvent;
