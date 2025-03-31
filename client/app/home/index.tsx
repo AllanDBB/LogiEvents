@@ -3,7 +3,6 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  SafeAreaView, 
   TouchableOpacity, 
   useWindowDimensions, 
   ActivityIndicator,
@@ -15,7 +14,7 @@ import ProfileCard from "@/components/ProfileCard";
 import EventCategoryTabs from "@/components/EventCategoryTabs";
 import SearchBar from "@/components/SearchBar";
 import EventCard from "@/components/EventCard";
-import ScrollbarStyles from "@/components/ScrollbarStyles";
+import MainPageContainer from "@/components/MainPageContainer";
 import type { EventCategory, Event } from "@/models/event";
 import type { userRole } from "@/models/user";
 import { useEvents } from "@/hooks/useEvents"; 
@@ -49,7 +48,6 @@ function HomeScreen() {
 
   // Responsive layout setup with improved web detection
   useEffect(() => {
-    // Use both current width and innerWidth for web browsers
     const screenWidth = 
       Platform.OS === 'web' && typeof window !== 'undefined' 
         ? Math.min(width, window.innerWidth) 
@@ -162,9 +160,9 @@ function HomeScreen() {
     ) : (
       <View style={styles.header}>
         <ProfileCard 
-           name={user ? `${user.name} ${user.lastname}`.toUpperCase() : ""}
-           role={user ? user.role : ""}
-           avatar={user?.profileImage}
+          name={user ? `${user.name} ${user.lastname}`.toUpperCase() : ""}
+          role={user ? user.role : ""}
+          avatar={user?.profileImage}
           profileStyles={profileStyles} 
         />
         <View style={styles.searchWrapper}>
@@ -229,43 +227,36 @@ function HomeScreen() {
   // Loading state
   if (loading && filteredEvents.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ScrollbarStyles />
-        <View style={styles.contentContainer}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#D9D9D9" />
-            <Text style={styles.loadingText}>Cargando eventos...</Text>
-          </View>
+      <MainPageContainer showNavbar={false} showFooter={false}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#D9D9D9" />
+          <Text style={styles.loadingText}>Cargando eventos...</Text>
         </View>
-      </SafeAreaView>
+      </MainPageContainer>
     );
   }
 
   // Error state
   if (error && filteredEvents.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ScrollbarStyles />
-        <View style={styles.contentContainer}>
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity 
-              style={styles.retryButton}
-              onPress={handleRetry}
-            >
-              <Text style={styles.retryButtonText}>Reintentar</Text>
-            </TouchableOpacity>
-          </View>
+      <MainPageContainer showNavbar={false} showFooter={false}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={handleRetry}
+          >
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </MainPageContainer>
     );
   }
 
   // Admin view
   if (userRole === "admin") {
     return (
-      <SafeAreaView style={styles.container}>
-        <ScrollbarStyles />
+      <MainPageContainer>
         <View style={styles.contentContainer}>
           {renderHeader()}
 
@@ -284,14 +275,13 @@ function HomeScreen() {
 
           {renderEventsList()}
         </View>
-      </SafeAreaView>
+      </MainPageContainer>
     );
   }
 
   // Standard user view
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollbarStyles />
+    <MainPageContainer>
       <View style={styles.contentContainer}>
         {renderHeader()}
 
@@ -308,15 +298,11 @@ function HomeScreen() {
           {renderEventsList()}
         </View>
       </View>
-    </SafeAreaView>
+    </MainPageContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
   contentContainer: {
     flex: 1,
     padding: 16,
@@ -349,18 +335,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     position: 'relative',
-    width: '100%',
-  },
-  gridContainer: {
-    paddingBottom: 20,
-    paddingHorizontal: 0,
-    width: '100%',
-    alignSelf: 'stretch',
-  },
-  columnWrapper: {
-    justifyContent: "flex-start",
-    marginBottom: 2,
-    flexWrap: 'wrap',
     width: '100%',
   },
   categoryTitle: {

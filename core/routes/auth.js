@@ -21,39 +21,72 @@ const secret = process.env.JWT_SECRET;
 // SMS:
 const { sendVerificationCode } = require('../services/smsService');
 
+// Middleware to check if the user is authenticated
+const upload = require('../middlewares/multer');
+
 // Register a new user:
-router.post('/register', async (req, res) => {
-   
-   try {
-        const check = ['firstName', 'lastName', 'email', 'password', 'phoneNumber'];
+router.post('/register', upload.single('profilePicture'), async (req, res) => {
+    try {
+        const check = ['firstName', 'lastName', 'email', 'password', 'phoneNumber', 'businessID', 'DNI', 'address'];
         bodyHandler(check, req.body);
 
-        const { firstName, lastName, email, password, phoneNumber } = req.body;
+        const { firstName, lastName, email, password, phoneNumber, businessID, DNI, address } = req.body;
 
-        // Check if the user already exists
         const user = await User.findOne({ email });
-
-        if (user){
+        if (user) {
             throw new Error('User already exists');
         }
 
         const passwordRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})");
-
-        if (!passwordRegex.test(password)){
+        if (!passwordRegex.test(password)) {
             throw new Error('Password is not strong enough');
         }
 
+        const dniRegex = new RegExp("^[0-9]{8}[A-Z]$");
+        if (!dniRegex.test(DNI)) {
+            throw new Error('DNI is not valid');
+        }
+
+        const phoneRegex = new RegExp("^[0-9]{10}$");
+        if (!phoneRegex.test(phoneNumber)) {
+            throw new Error('Phone number is not valid');
+        }
+
+        const businessIDRegex = new RegExp("^[A-Z]{4}[0-9]{4}$");
+        if (!businessIDRegex.test(businessID)) {
+            throw new Error('Business ID is not valid');
+        }
+
+        const emailRegex = new RegExp("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+        if (!emailRegex.test(email)) {
+            throw new Error('Email is not valid');
+        }
+
         const hashedPassword = await bcryptjs.hash(password, 10);
+        
+        let profilePictureUrl = null;
+        if (req.file) {
+            const media = new Media({
+                title: req.file.originalname,
+                url: req.file.path,
+                type: 'image'
+            });
+            await media.save();
+            profilePictureUrl = media._id;
+        }
+
         const newUser = new User({
             firstName,
             lastName,
             email,
             password: hashedPassword,
             phoneNumber,
-            
+            businessID,
+            DNI,
+            address,
+            profilePicture: profilePictureUrl
         });
 
-        // Create OTP
         const OTPCode = crypto.randomInt(100000, 999999);
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 15);
@@ -65,15 +98,14 @@ router.post('/register', async (req, res) => {
         });
 
         await newOTP.save();
-
         await sendVerificationCode(phoneNumber, newOTP.code);
         
         await newUser.save();
 
         res.status(201).json(newUser);
-    } catch (error){
+    } catch (error) {
         res.status(400).json({ error: error.message });
-   }  
+    }
 });
 
 router.post("/verify-code", async (req, res) => {

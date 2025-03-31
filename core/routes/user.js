@@ -104,6 +104,10 @@ router.get('/:id', requireAuth, async (req, res) => {
             throw new Error('User not found');
         }
 
+        // Remove password and __v from user object
+        user.password = undefined;
+        user.__v = undefined;
+
         res.status(200).json(user);
     }
     catch (error) {
@@ -173,5 +177,33 @@ router.delete('/:id', requireAuth, async (req, res) => {
         }
     }
 );
+
+
+// Make user admin
+router.patch('/make-admin/:id', requireAuth, async (req, res) => {
+
+    try {
+        const user = await User.findById(req.params.id);
+        
+        // Validate that authorized user is a god user
+        if (req.user.role !== 'god'){
+            throw new Error('You are not authorized to perform this action');
+        }
+
+        // Validate that user is not already an adminAún 
+        if (!user){
+            throw new Error('User not found');
+        }
+
+        user.role = 'admin';
+
+        await user.save();
+
+        res.status(200).json(user);
+    }
+    catch (error) {
+        res.status(400).send(error.message);
+    }
+});
 
 module.exports = router;
