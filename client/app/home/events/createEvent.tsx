@@ -127,20 +127,20 @@ const CreateEvent = () => {
 
   
     if (year < currentYear) {
-      setDateError('El año no puede ser anterior al actual');
+      setDateError('Fecha inválida');
       return false;
     }
 
   
     if (month < 1 || month > 12) {
-      setDateError('Mes inválido (debe ser entre 1 y 12)');
+      setDateError('Fecha inválida');
       return false;
     }
 
     
     const daysInMonth = new Date(year, month, 0).getDate();
     if (day < 1 || day > daysInMonth) {
-      setDateError(`Día inválido para el mes seleccionado (máx ${daysInMonth})`);
+      setDateError('Fecha inválida');
       return false;
     }
 
