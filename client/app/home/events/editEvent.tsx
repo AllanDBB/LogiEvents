@@ -2,6 +2,7 @@ import MainPageContainer from '@/components/MainPageContainer';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import { RelativePathString, useRouter } from "expo-router";
 
 const EditEvent = () => {
   let oldData = {
@@ -42,6 +43,8 @@ const EditEvent = () => {
       setFormattedDate(`${day}/${month}/${year}`);
     }
   }, [date]);
+
+  const router = useRouter();
 
   const handleCreateEvent = () => {
     let hasErrors = false;
@@ -104,6 +107,8 @@ const EditEvent = () => {
     };
     
     console.log('Datos del evento:', eventData);
+
+    router.push("/home/events/myEvents");
     
     return eventData;
   };
