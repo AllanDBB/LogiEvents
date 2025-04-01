@@ -129,9 +129,19 @@ const EventDetails = () => {
     }
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
 
   return (
     <MainPageContainer>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={handleBack}
+      >
+        <Ionicons name="chevron-back" size={28} color="#E74C3C" />
+      </TouchableOpacity>
     <ScrollView style={styles.container}>
             <View style={styles.eventContainer}>
             <Image 
@@ -190,16 +200,6 @@ const styles = StyleSheet.create({
     color: '#E74C3C',
     marginVertical: 10,
     textAlign: 'center',
-  },
-  backButton: {
-    marginTop: 20,
-    padding: 12,
-    backgroundColor: '#FFA07A',
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
   },
   title: {
     fontSize: 24,
@@ -280,6 +280,18 @@ const styles = StyleSheet.create({
   buyButtonPrice: {
     fontSize: 14,
     color: '#fff',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 1,
+    marginLeft: 10,
+    marginTop: 1,
+  },
+  backButtonText: {
+    marginLeft: 5,
+    color: '#E74C3C',
+    fontSize: 10,
   },
 });
 
