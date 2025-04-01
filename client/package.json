@@ -20,6 +20,7 @@
     "@react-navigation/native": "^7.0.14",
     "@types/react-native-vector-icons": "^6.4.18",
     "axios": "^1.8.4",
+    "cors": "^2.8.5",
     "expo": "~52.0.36",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.7",
