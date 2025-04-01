@@ -133,6 +133,11 @@ function ChatPopup(props: ChatPopupProps) {
   function handleInputSubmit() {
     handleSendMessage();
   }
+  function handleClearChat() {
+    
+    clearChat();
+  }
+
 
   function renderMessageItem({ item }: { item: Message }) {
     return (
@@ -237,11 +242,13 @@ function ChatPopup(props: ChatPopupProps) {
                     <Text style={styles.botName}>SammyBot</Text>
                     <Text style={styles.botStatus}>• Always active</Text>
                   </View>
+                
                 </View>
                 <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                   <Ionicons name="close" size={24} color="#000" />
                 </TouchableOpacity>
               </View>
+             
               <Text style={styles.chatTime}>{getCurrentFormattedTime()}</Text>
             </BlurView>
 
@@ -266,6 +273,18 @@ function ChatPopup(props: ChatPopupProps) {
               keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
               <View style={styles.inputContainer}>
+
+                <TouchableOpacity
+                  style={styles.clearChatButton}
+                  onPress={handleClearChat}
+                >
+                  <Ionicons
+                    name="trash"
+                    size={20}
+                    color={ "#0080ff" }
+                  />
+                </TouchableOpacity>
+
                 <TextInput
                   style={styles.input}
                   value={inputText}
@@ -275,6 +294,7 @@ function ChatPopup(props: ChatPopupProps) {
                   returnKeyType="send"
                   onSubmitEditing={handleInputSubmit}
                 />
+
                 <TouchableOpacity
                   style={styles.sendButton}
                   onPress={handleSendMessage}
@@ -478,6 +498,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0080ff',
     fontWeight: '500',
+  },
+  clearChatButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   eventSuggestion: {
     backgroundColor: '#fff',

@@ -10,7 +10,6 @@ const userService = {
       return Promise.resolve(users[2]);
     }
     
-    // TODO: Implement real API call
     try {
       const response = await api.get('/users/me');
       return response.data;
@@ -26,7 +25,6 @@ const userService = {
       return Promise.resolve(user || null);
     }
     
-    // TODO: Implement real API call
     try {
       const response = await api.get(`/users/${id}`);
       return response.data;
@@ -46,12 +44,48 @@ const userService = {
       return Promise.resolve(updatedUser);
     }
     
-    // TODO: Implement real API call
     try {
       const response = await api.put('/users/me', userData);
       return response.data;
     } catch (error) {
       console.error('Error updating profile:', error);
+      return null;
+    }
+  },
+  
+  uploadProfileImage: async (imageUri: string, userId: string): Promise<string | null> => {
+    if (USE_MOCK) {
+      console.log('Modo de prueba: La imagen se subiría a api/uploads');
+      return Promise.resolve(imageUri);
+    }
+    
+    try {
+      const formData = new FormData();
+      
+      const uriParts = imageUri.split('/');
+      const fileName = uriParts[uriParts.length - 1];
+      
+      formData.append('file', {
+        uri: imageUri,
+        name: fileName,
+        type: 'image/jpeg',
+      } as any);
+      
+      formData.append('userId', userId);
+      
+      const response = await api.post('/api/uploads', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (response.data && response.data.imageUrl) {
+        return response.data.imageUrl;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
       return null;
     }
   },
@@ -61,7 +95,6 @@ const userService = {
       return Promise.resolve(true);
     }
     
-    // TODO: Implement real API call
     try {
       await api.post('/users/change-password', {
         oldPassword,
@@ -79,7 +112,6 @@ const userService = {
       return Promise.resolve(true);
     }
     
-    // TODO: Implement real API call
     try {
       await api.post('/auth/logout');
       return true;

@@ -1,3 +1,4 @@
+// client/app/home/profile/index.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -15,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@/hooks/useUser";
 import RoleIndicator from "@/components/RoleIndicator";
 import MainPageContainer from "@/components/MainPageContainer";
+import { pickImageFromGallery } from "@/utils/imageUpload";
 
 export default function ProfileScreen() {
   // Hooks
@@ -29,18 +31,19 @@ export default function ProfileScreen() {
   const [phone, setPhone] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
-  // Derived values
   const isMobile = width < 768;
-  const defaultImage = { uri: "https://www.kasandbox.org/programming-images/avatars/leaf-blue.png" };
+  const defaultImage = { uri: "https://ui-avatars.com/api/?name="+user?.name+user?.lastname };
 
-  // Load user data on component mount
   useEffect(() => {
     if (user) {
       setName(user.name || "");
       setLastname(user.lastname || "");
       setEmail(user.email || "");
       setPhone(user.phone || "");
+      setProfileImage(user.profileImage || undefined);
     }
   }, [user]);
 
@@ -49,19 +52,30 @@ export default function ProfileScreen() {
 
   const handleEditToggle = () => {
     if (isEditing && user) {
-      // Reset form if canceling edit
       setName(user.name || "");
       setLastname(user.lastname || "");
       setEmail(user.email || "");
       setPhone(user.phone || "");
+      setProfileImage(user.profileImage || undefined);
     }
     setIsEditing(!isEditing);
   };
 
+  const handlePickImage = async () => {
+    try {
+      const imageUri = await pickImageFromGallery();
+      if (imageUri) {
+        setProfileImage(imageUri);
+      }
+    } catch (err) {
+      console.error("Error picking image:", err);
+      Alert.alert("Error", "No se pudo seleccionar la imagen. Inténtalo de nuevo.");
+    }
+  };
+
   const handleSave = async () => {
-    // Validate required fields
     if (!name || !lastname || !email) {
-      Alert.alert("Error", "Por favor complete todos los campos");
+      Alert.alert("Error", "Por favor complete todos los campos requeridos");
       return;
     }
 
@@ -72,12 +86,13 @@ export default function ProfileScreen() {
         name,
         lastname,
         email,
-        phone
+        phone,
+        profileImage
       });
       
       if (success) {
         setIsEditing(false);
-        Alert.alert("Success", "Perfil actualizado correctamente");
+        Alert.alert("Éxito", "Perfil actualizado correctamente");
       } else {
         Alert.alert("Error", "Un error ocurrió al actualizar el perfil");
       }
@@ -94,7 +109,7 @@ export default function ProfileScreen() {
     if (success) {
       router.replace("/");
     } else {
-      Alert.alert("Error", "Error al cerrar sesion");
+      Alert.alert("Error", "Error al cerrar sesión");
     }
   };
 
@@ -115,12 +130,28 @@ export default function ProfileScreen() {
 
   const renderProfileSection = () => (
     <View style={styles.profileSection}>
-      <View style={styles.avatarContainer}>
-        <Image
-          source={user?.profileImage ? { uri: user.profileImage } : defaultImage}
-          style={{ width: 80, height: 80, borderRadius: 40 }}
-        />
-      </View>
+      <TouchableOpacity 
+        style={styles.avatarContainer} 
+        onPress={isEditing ? handlePickImage : undefined}
+        disabled={!isEditing || isUploadingImage}
+      >
+        {isUploadingImage ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <>
+            <Image
+              source={profileImage ? { uri: profileImage } : defaultImage}
+              style={styles.avatarImage}
+            />
+            {isEditing && (
+              <View style={styles.editImageOverlay}>
+                <Ionicons name="image" size={24} color="#fff" />
+                <Text style={styles.editImageText}>Cambiar</Text>
+              </View>
+            )}
+          </>
+        )}
+      </TouchableOpacity>
       <View style={styles.userInfo}>
         <Text style={styles.userName}>{name} {lastname}</Text>
         <Text style={styles.userEmail}>{email}</Text>
@@ -149,7 +180,7 @@ export default function ProfileScreen() {
       {renderFormField("Nombre", name, setName, "First Name")}
       {renderFormField("Apellidos", lastname, setLastname, "Last Name")}
       {renderFormField("Correo", email, setEmail, "Email", "email-address", "none")}
-      {renderFormField("Telefono", phone, setPhone, "Phone Number", "phone-pad")}
+      {renderFormField("Teléfono", phone, setPhone, "Phone Number", "phone-pad")}
     </View>
   );
 
@@ -158,7 +189,7 @@ export default function ProfileScreen() {
       <TouchableOpacity 
         style={[styles.actionButton, styles.saveButton]} 
         onPress={handleSave}
-        disabled={isSaving}
+        disabled={isSaving || isUploadingImage}
       >
         {isSaving ? (
           <ActivityIndicator size="small" color="#fff" />
@@ -170,7 +201,7 @@ export default function ProfileScreen() {
       <TouchableOpacity 
         style={[styles.actionButton, styles.cancelButton]} 
         onPress={handleEditToggle}
-        disabled={isSaving}
+        disabled={isSaving || isUploadingImage}
       >
         <Text style={styles.cancelButtonText}>Cancelar</Text>
       </TouchableOpacity>
@@ -203,7 +234,7 @@ export default function ProfileScreen() {
         style={[styles.actionButton, styles.logoutButton]} 
         onPress={handleLogout}
       >
-        <Text style={styles.logoutButtonText}>Cerrar Sesion</Text>
+        <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
       </TouchableOpacity>
     </View>
   );
@@ -294,6 +325,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 20,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  editImageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editImageText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
   },
   userInfo: {
     flex: 1,
