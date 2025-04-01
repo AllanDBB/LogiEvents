@@ -24,7 +24,6 @@ let tempData = {
   availableSpots: 4, 
   admin: "Starticket",
   capacity: 300,
-  takenSpots: 24,
   price: 7,
 };
 
@@ -34,6 +33,7 @@ const EventDetails = () => {
   const { event, loadEvent } = useEvents();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const takenSpots = tempData.capacity-tempData.availableSpots;
 
  
   const { eventId } = useLocalSearchParams();
@@ -115,6 +115,7 @@ const EventDetails = () => {
     const [hours, minutes] = timeString.split(':');
     
     
+    
     const providedDate = new Date(year, month - 1, day, hours, minutes);
     
     
@@ -164,7 +165,7 @@ const EventDetails = () => {
                   </View>
                 </View>
       
-                <Text style={styles.infoText}>👥 {tempData.takenSpots} / {tempData.capacity}</Text>
+                <Text style={styles.infoText}>👥 {takenSpots} / {tempData.capacity}</Text>
       
                 <Text style={styles.description}>{tempData.description}</Text>
 
