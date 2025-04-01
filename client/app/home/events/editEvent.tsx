@@ -4,16 +4,6 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView 
 import RNPickerSelect from 'react-native-picker-select';
 
 const EditEvent = () => {
-  const [eventName, setEventName] = useState('');
-  const [location, setLocation] = useState('');
-  const [category, setCategory] = useState('');
-  const [capacity, setCapacity] = useState('');
-  const [price, setPrice] = useState('');
-  const [date, setDate] = useState('');
-  const [formattedDate, setFormattedDate] = useState('');
-  const [time, setTime] = useState('');
-  const [image, setImage] = useState(null);
-
   let oldData = {
     title: "Fiesta",
     description: "Gran fiesta en la playa con musica en vivo y juegos",
@@ -27,6 +17,17 @@ const EditEvent = () => {
     capacity: 300,
     price: 7,
   };
+
+  const [eventName, setEventName] = useState(oldData.title);
+  const [location, setLocation] = useState(oldData.location);
+  const [category, setCategory] = useState(oldData.category);
+  const [capacity, setCapacity] = useState(oldData.capacity.toString());
+  const [price, setPrice] = useState(oldData.price.toString());
+  const [date, setDate] = useState(oldData.date.replace(/\//g, ''));
+  const [formattedDate, setFormattedDate] = useState(oldData.date);
+  const [time, setTime] = useState(oldData.time);
+  const [image, setImage] = useState(oldData.image);
+  const [description, setDescription] = useState(oldData.description);
 
 
   useEffect(() => {
