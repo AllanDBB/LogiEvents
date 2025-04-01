@@ -94,7 +94,7 @@ function HomeScreen() {
   };
 
   const handleCreateEvent = () => {
-    router.push("/home/events/create");
+    router.push("/home/events/createEvent");
   };
 
   const handleViewStats = () => {
