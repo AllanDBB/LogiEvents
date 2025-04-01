@@ -11,6 +11,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/useEvents';
+import MainPageContainer from '@/components/MainPageContainer';
 
 let tempData = {
   title: "Fiesta",
@@ -130,6 +131,7 @@ const EventDetails = () => {
 
 
   return (
+    <MainPageContainer>
     <ScrollView style={styles.container}>
             <View style={styles.eventContainer}>
             <Image 
@@ -167,6 +169,7 @@ const EventDetails = () => {
               </View>
             </View>
           </ScrollView>
+          </MainPageContainer>
   );
 };
 
