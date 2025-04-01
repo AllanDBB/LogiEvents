@@ -14,6 +14,20 @@ const EditEvent = () => {
   const [time, setTime] = useState('');
   const [image, setImage] = useState(null);
 
+  let oldData = {
+    title: "Fiesta",
+    description: "Gran fiesta en la playa con musica en vivo y juegos",
+    image: "https://www.kasandbox.org/programming-images/avatars/leaf-red.png",
+    category: "Ocio",
+    date: "23/01/2015",
+    time: "08:00",
+    location: "Liberia, Guanacaste",
+    availableSpots: 4, 
+    admin: "Starticket",
+    capacity: 300,
+    price: 7,
+  };
+
 
   useEffect(() => {
     if (date.length === 8 && !date.includes('/')) {
@@ -81,7 +95,7 @@ const EditEvent = () => {
         <View style={styles.detailsContainer}>
           <Text style={styles.adminText}>Editar evento</Text>
 
-          <Text style={styles.eventTitle}>NOMBRE DEL EVENTO</Text>
+          <Text style={styles.eventTitle}>{oldData.title}</Text>
         
 
           <View style={styles.infoContainer}>
@@ -92,14 +106,14 @@ const EditEvent = () => {
                   style={styles.infoInput}
                   value={location}
                   onChangeText={setLocation}
-                  placeholder="Ubicación"
+                  placeholder= {oldData.location}
                   placeholderTextColor="#777"
                 />
               </View>
               
               <View style={styles.categorySpace}>
                 <Text style={styles.pickerIcon}>🏷️</Text>
-                <Text style={styles.infoInput}>Ocio</Text>
+                <Text style={styles.infoInput}>{oldData.category}</Text>
               </View>
             </View>
 
@@ -110,7 +124,7 @@ const EditEvent = () => {
                   style={styles.infoInput}
                   value={formattedDate}
                   onChangeText={handleDateChange}
-                  placeholder="DD/MM/AAAA"
+                  placeholder={oldData.date}
                   placeholderTextColor="#777"
                   keyboardType="number-pad"
                   maxLength={10}
@@ -122,7 +136,7 @@ const EditEvent = () => {
                 <RNPickerSelect
                   onValueChange={(value) => setTime(value)}
                   items={hours}
-                  placeholder={{ label: 'Selecciona hora', value: null }}
+                  placeholder={{ label: oldData.time, value: null }}
                   style={pickerSelectStyles}
                   value={time}
                 />
@@ -137,7 +151,7 @@ const EditEvent = () => {
                 style={styles.capacityInput}
                 value={capacity}
                 onChangeText={handleCapacityChange}
-                placeholder="Capacidad"
+                placeholder= {oldData.capacity}
                 placeholderTextColor="#777"
                 keyboardType="number-pad"
               />
@@ -149,7 +163,7 @@ const EditEvent = () => {
                 style={styles.priceInput}
                 value={price}
                 onChangeText={handlePriceChange}
-                placeholder="Precio"
+                placeholder={oldData.price}
                 placeholderTextColor="#777"
                 keyboardType="decimal-pad"
               />
@@ -158,12 +172,7 @@ const EditEvent = () => {
 
 
 
-          <Text style={styles.descriptionInput}>Descripción Descripción Descripción Descripción Descripción Descripción
-          Descripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción Descripción
-          Descripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción Descripción
-          Descripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción Descripción
-          Descripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción Descripción
-          Descripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción DescripciónDescripción Descripción Descripción
+          <Text style={styles.descriptionInput}> {oldData.description}
           </Text>
             
           
