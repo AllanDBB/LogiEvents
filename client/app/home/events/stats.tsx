@@ -207,48 +207,96 @@ export default function StatsPage() {
         </View>
 
         <ScrollView>
-          <View style={styles.chartAndRankingsContainer}>
-            <View style={styles.chartContainer}>
-              <BarChart
-                data={chartData}
-                width={(width / 2) - 100} 
-                height={220}
-                yAxisLabel=""
-                yAxisSuffix="" 
-                fromZero={true} 
-                yAxisInterval={yAxisInterval}
-                chartConfig={{
-                  backgroundColor: '#ffffff',
-                  backgroundGradientFrom: '#ffffff',
-                  backgroundGradientTo: '#ffffff',
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  fillShadowGradient: '#FF0000',
-                  fillShadowGradientOpacity: 1,
-                  style: {
-                    borderRadius: 16,
-                  },
-                }}
-                style={{
-                  marginVertical: 8,
-                  borderRadius: 16,
-                }}
-                verticalLabelRotation={0} 
-              />
-            </View>
+  <View
+    style={[
+      styles.chartAndRankingsContainer,
+      isMobile && styles.chartAndRankingsContainerMobile, 
+    ]}
+  >
+    {isMobile ? (
+      <>
+        <View style={styles.chartContainer}>
+          <BarChart
+            data={chartData}
+            width={width - 40} 
+            height={220}
+            yAxisLabel=""
+            yAxisSuffix=""
+            fromZero={true}
+            yAxisInterval={yAxisInterval}
+            chartConfig={{
+              backgroundColor: '#ffffff',
+              backgroundGradientFrom: '#ffffff',
+              backgroundGradientTo: '#ffffff',
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              fillShadowGradient: '#FF0000',
+              fillShadowGradientOpacity: 1,
+              style: {
+                borderRadius: 16,
+              },
+            }}
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
+            verticalLabelRotation={0}
+          />
+        </View>
+        <View style={styles.rankingsContainer}>
+          {sortedCategories.map((item, index) => (
+            <Text key={item.category} style={styles.rankingsItem}>
+              {index + 1}. {item.category} ({item.count} eventos)
+            </Text>
+          ))}
+        </View>
+      </>
+    ) : (
+      <>
+        <View style={styles.chartContainer}>
+          <BarChart
+            data={chartData}
+            width={(width / 2) - 100}
+            height={220}
+            yAxisLabel=""
+            yAxisSuffix=""
+            fromZero={true}
+            yAxisInterval={yAxisInterval}
+            chartConfig={{
+              backgroundColor: '#ffffff',
+              backgroundGradientFrom: '#ffffff',
+              backgroundGradientTo: '#ffffff',
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              fillShadowGradient: '#FF0000',
+              fillShadowGradientOpacity: 1,
+              style: {
+                borderRadius: 16,
+              },
+            }}
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
+            verticalLabelRotation={0}
+          />
+        </View>
+        <View style={styles.rankingsContainer}>
+          {sortedCategories.map((item, index) => (
+            <Text key={item.category} style={styles.rankingsItem}>
+              {index + 1}. {item.category} ({item.count} eventos)
+            </Text>
+          ))}
+        </View>
+      </>
+    )}
+  </View>
+</ScrollView>
 
-            <View style={styles.rankingsContainer}>
-              {sortedCategories.map((item, index) => (
-                <Text key={item.category} style={styles.rankingsItem}>
-                  {index + 1}. {item.category} ({item.count} eventos)
-                </Text>
-              ))}
-            </View>
-          </View>
-        </ScrollView>
 
-        <View style={styles.exportButtonContainer}>
+<View style={styles.exportButtonContainer}>
           <TouchableOpacity 
             style={styles.exportButton}
             onPress={handleExportToPDF}
@@ -352,5 +400,15 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  chartAndRankingsContainerMobile: {
+    flexDirection: 'column', 
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  exportButtonContainerMobile: {
+    position: 'relative', 
+    marginTop: 2, 
+    alignSelf: 'center', 
   },
 });

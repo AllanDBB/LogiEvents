@@ -20,7 +20,7 @@ export default function LandingPage() {
           </Text>
           <TouchableOpacity 
             style={styles.button}
-            onPress={() => router.push('/auth/stats')} 
+            onPress={() => router.push('/home')} 
           >
             <Text style={styles.buttonText}>Ir ahora</Text>
           </TouchableOpacity>
