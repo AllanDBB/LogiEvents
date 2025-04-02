@@ -1,8 +1,9 @@
 import MainPageContainer from '@/components/MainPageContainer';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Platform } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { RelativePathString, useRouter } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
 
 const CreateEvent = () => {
   const [eventName, setEventName] = useState('');
@@ -25,6 +26,28 @@ const CreateEvent = () => {
   const [descriptionError, setDescriptionError] = useState('');
 
   const router = useRouter();
+
+  const pickImage = async () => {
+    // Solicitar permisos
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Se necesitan permisos para acceder a la galería de fotos.');
+        return;
+      }
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   const handleCreateEvent = () => {
     let hasErrors = false;
@@ -246,13 +269,20 @@ const CreateEvent = () => {
     <MainPageContainer>
     <ScrollView style={styles.container}>
       <View style={styles.eventContainer}>
-        <TouchableOpacity style={styles.imagePlaceholder}>
-          {image ? (
-            <Image source={{ uri: image }} style={styles.image} />
-          ) : (
-            <Text>Agregar imagen</Text>
-          )}
-        </TouchableOpacity>
+      <TouchableOpacity 
+            style={styles.imagePlaceholder}
+            onPress={pickImage}
+          >
+            {image ? (
+              <Image source={{ uri: image }} style={styles.image} />
+            ) : (
+              <View style={styles.placeholderContent}>
+                <Text style={styles.placeholderText}>+</Text>
+                <Text style={styles.placeholderSubText}>Agregar imagen</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          
 
         <View style={styles.detailsContainer}>
           <Text style={styles.adminText}>Crear nuevo evento</Text>
@@ -544,6 +574,24 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: '#cccccc',
     opacity: 0.6,
+  },
+  placeholderContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderText: {
+    fontSize: 48,
+    color: '#5FAA9D',
+    marginBottom: 8,
+  },
+  placeholderSubText: {
+    fontSize: 16,
+    color: '#5FAA9D',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
   },
 });
 
