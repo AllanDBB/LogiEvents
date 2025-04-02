@@ -92,12 +92,31 @@ export default function RegisterAdmin() {
           </View>
         </View>
 
-        <Text style={styles.termsText}>
-          Al registrarse acepta nuestros <Text style={styles.boldUnderline}>Términos de uso</Text> y <Text style={styles.boldUnderline}>Políticas de privacidad</Text>.
+        
+      <Text style={styles.termsText}>
+          Al registrarse acepta nuestros{' '}
+          <Text
+            style={styles.boldUnderline}
+            onPress={() => router.push('/policies')}
+          >
+            Términos de uso
+          </Text>{' '}
+          y{' '}
+          <Text
+            style={styles.boldUnderline}
+            onPress={() => router.push('/policies')}
+          >
+            Políticas de privacidad
+          </Text>
         </Text>
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Continuar</Text>
+
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => router.push('/home')}
+        >
+          <Text 
+          style={styles.buttonText}>Continuar</Text>
         </TouchableOpacity>
 
         <View style={styles.linkContainer}>

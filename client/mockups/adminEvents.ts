@@ -11,6 +11,7 @@ const myEvents: Event[] = [
     time: "11:59 PM",
     location: "San José, Costa Rica",
     availableSpots: 50,
+    state: "Activo",
   },
   {
     id: "2",
@@ -22,6 +23,9 @@ const myEvents: Event[] = [
     time: "09:00 AM",
     location: "Liberia, Guanacaste",
     availableSpots: 200,
+    state: "Activo",
+
+
   },
   {
     id: "3",
@@ -33,6 +37,8 @@ const myEvents: Event[] = [
     time: "12:00 PM",
     location: "Alajuela, Costa Rica",
     availableSpots: 100,
+    state: "Agotado",
+
   },
   {
     id: "4",
@@ -44,6 +50,8 @@ const myEvents: Event[] = [
     time: "06:00 AM",
     location: "Heredia, Costa Rica",
     availableSpots: 500,
+    state: "Proximamente",
+
   },
   {
     id: "5",
@@ -55,6 +63,7 @@ const myEvents: Event[] = [
     time: "04:00 PM",
     location: "Cartago, Costa Rica",
     availableSpots: 30,
+    state: "Proximamente",
   },
   {
     id: "6",
@@ -66,6 +75,7 @@ const myEvents: Event[] = [
     time: "10:00 AM",
     location: "Puntarenas, Costa Rica",
     availableSpots: 40,
+    state: "Activo",
   },
   {
     id: "7",
@@ -77,6 +87,7 @@ const myEvents: Event[] = [
     time: "03:00 PM",
     location: "Guanacaste, Costa Rica",
     availableSpots: 20,
+    state: "Activo",
   },
   {
     id: "8",
@@ -88,6 +99,7 @@ const myEvents: Event[] = [
     time: "02:00 PM",
     location: "San Carlos, Costa Rica",
     availableSpots: 60,
+    state: "Agotado",
   },
   {
     id: "9",
@@ -99,6 +111,7 @@ const myEvents: Event[] = [
     time: "07:00 PM",
     location: "San José, Costa Rica",
     availableSpots: 80,
+    state: "Activo",
   },
   {
     id: "10",
@@ -110,6 +123,7 @@ const myEvents: Event[] = [
     time: "05:00 PM",
     location: "Cartago, Costa Rica",
     availableSpots: 300,
+    state: "Agotado",
   },
   {
     id: "11",
@@ -121,6 +135,7 @@ const myEvents: Event[] = [
     time: "06:00 PM",
     location: "Online",
     availableSpots: 100,
+    state: "Activo",
   },
   {
     id: "12",
@@ -132,6 +147,7 @@ const myEvents: Event[] = [
     time: "09:00 AM",
     location: "Heredia, Costa Rica",
     availableSpots: 120,
+    state: "Proximamente",
   },
   {
     id: "13",
@@ -143,6 +159,7 @@ const myEvents: Event[] = [
     time: "08:00 PM",
     location: "San José, Costa Rica",
     availableSpots: 400,
+    state: "Agotado",
   },
   {
     id: "14",
@@ -154,6 +171,7 @@ const myEvents: Event[] = [
     time: "10:00 AM",
     location: "Online",
     availableSpots: 50,
+    state: "Agotado",
   },
   {
     id: "15",
@@ -165,6 +183,7 @@ const myEvents: Event[] = [
     time: "03:00 PM",
     location: "Alajuela, Costa Rica",
     availableSpots: 70,
+    state: "Proximamente",
   },
   {
     id: "16",
@@ -176,6 +195,7 @@ const myEvents: Event[] = [
     time: "07:00 PM",
     location: "Cartago, Costa Rica",
     availableSpots: 60,
+    state: "Activo",
   },
   {
     id: "17",
@@ -187,6 +207,7 @@ const myEvents: Event[] = [
     time: "01:00 PM",
     location: "San José, Costa Rica",
     availableSpots: 200,
+    state: "Agotado",
   },
   {
     id: "18",
@@ -198,6 +219,7 @@ const myEvents: Event[] = [
     time: "07:00 AM",
     location: "Puntarenas, Costa Rica",
     availableSpots: 150,
+    state: "Proximamente",
   },
   {
     id: "19",
@@ -209,6 +231,7 @@ const myEvents: Event[] = [
     time: "05:00 PM",
     location: "Online",
     availableSpots: 30,
+    state: "Activo",
   },
   {
     id: "20",
@@ -220,7 +243,10 @@ const myEvents: Event[] = [
     time: "08:00 PM",
     location: "San José, Costa Rica",
     availableSpots: 250,
-  }
+    state: "Agotado",
+  },
+
+  
 ];
 
 export default myEvents;
