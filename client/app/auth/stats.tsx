@@ -50,16 +50,15 @@ export default function StatsPage() {
   const handleExportToPDF = async () => {
     if (Platform.OS === 'web') {
       try {
-        // Crear un nuevo documento PDF
         const pdfDoc = await PDFDocument.create();
 
         // Agregar una página al PDF
-        const page = pdfDoc.addPage([595.28, 841.89]); // Tamaño A4 en puntos (72 puntos por pulgada)
+        const page = pdfDoc.addPage([595.28, 841.89]); 
         const { width, height } = page.getSize();
 
         // Configurar fuentes y estilos
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); // Fuente en negrita
+        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); 
         const fontSize = 12;
 
         // Agregar título
@@ -67,17 +66,17 @@ export default function StatsPage() {
           x: 50,
           y: height - 50,
           size: 18,
-          font: boldFont, // Usar fuente en negrita
-          color: rgb(0.88, 0.36, 0.27), // Color rojo (#E05C45)
+          font: boldFont, 
+          color: rgb(0.88, 0.36, 0.27), 
         });
-
         // Agregar sección de Distribución de Estados
+
         let yPosition = height - 80;
         page.drawText('Distribución de Estados:', {
           x: 50,
           y: yPosition,
           size: fontSize,
-          font: boldFont, // Usar fuente en negrita
+          font: boldFont, 
           color: rgb(0, 0, 0),
         });
         yPosition -= 20;
@@ -92,13 +91,12 @@ export default function StatsPage() {
           yPosition -= 15;
         });
 
-        // Agregar sección de Ranking de Categorías
         yPosition -= 10;
         page.drawText('Ranking de Categorías:', {
           x: 50,
           y: yPosition,
           size: fontSize,
-          font: boldFont, // Usar fuente en negrita
+          font: boldFont, 
           color: rgb(0, 0, 0),
         });
         yPosition -= 20;
@@ -113,7 +111,6 @@ export default function StatsPage() {
           yPosition -= 15;
         });
 
-        // Agregar fecha de generación
         yPosition -= 20;
         page.drawText(`Generado el ${new Date().toLocaleDateString()}`, {
           x: 50,
@@ -123,11 +120,9 @@ export default function StatsPage() {
           color: rgb(0.5, 0.5, 0.5), // Color gris
         });
 
-        // Guardar el PDF como un archivo Blob
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
 
-        // Descargar el archivo PDF
         FileSaver.saveAs(blob, `Estadisticas_Eventos_${new Date().toISOString().split('T')[0]}.pdf`);
       } catch (error) {
         console.error('Error al generar el PDF:', error);
@@ -137,7 +132,6 @@ export default function StatsPage() {
     }
 
     try {
-      // Generar el contenido HTML para el PDF
       const htmlContent = `
         <html>
           <head>
@@ -170,14 +164,13 @@ export default function StatsPage() {
         </html>
       `;
 
-      // Generar el PDF usando react-native-html-to-pdf
       const options = {
         html: htmlContent,
         fileName: `Estadisticas_Eventos_${new Date().toISOString().split('T')[0]}`,
-        directory: 'Documents', // Cambiado de 'Descargas' a 'Documents'
+        directory: 'Documents', 
       };
 
-      console.log('PDF Options:', options); // Agregado para depuración
+      console.log('PDF Options:', options);
 
       const pdf = await RNHTMLtoPDF.convert(options);
 
@@ -185,7 +178,6 @@ export default function StatsPage() {
         throw new Error('No se pudo generar el archivo PDF');
       }
 
-      // Compartir el PDF usando expo-sharing
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
         alert('El PDF se generó pero no se puede compartir en esta plataforma');
