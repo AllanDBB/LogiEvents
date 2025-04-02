@@ -7,7 +7,7 @@ const USE_MOCK = true;
 const userService = {
   getCurrentUser: async (): Promise<User | null> => {
     if (USE_MOCK) {
-      return Promise.resolve(users[2]);
+      return Promise.resolve(users[3]);
     }
     
     try {
