@@ -25,6 +25,7 @@ let tempData = {
   admin: "Starticket",
   capacity: 300,
   price: 7,
+  numSpace : 4
 };
 
 
@@ -166,6 +167,9 @@ const EventDetails = () => {
                   <View style={styles.infoColumn}>
                     <Text style={styles.infoText}>🗓️ {tempData.date}</Text>
                     <Text style={styles.infoText}>⏰ {tempData.time}</Text>
+                    <Text style={styles.spacesTitle}>Cantidad de tickets</Text>
+                    <Text style={styles.spacesText}>{tempData.numSpace}</Text>
+
                   </View>
                 </View>
       
@@ -176,12 +180,9 @@ const EventDetails = () => {
                 
       
                 <Text style={styles.activeEvent}>{compareDates(tempData.date, tempData.time)}</Text>
-      
-                <TouchableOpacity style={styles.buyButton}
-                onPress={() => handleReservation()}>
-                  <Text style={styles.buyButtonText}>¡Comprar ahora!</Text>
-                  <Text style={styles.buyButtonPrice}>${tempData.price} + I.V.A</Text>
-                </TouchableOpacity>
+
+                
+              
               </View>
             </View>
           </ScrollView>
@@ -235,7 +236,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#555',
-    marginBottom: 20,
+    marginBottom:10,
+  },
+  spacesTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#555',
+    marginBottom:1,
+    marginTop: 10,
+  },
+  spacesText: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom:1,
   },
   eventTitle: {
     fontSize: 27,
