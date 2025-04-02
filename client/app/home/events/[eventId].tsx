@@ -39,6 +39,10 @@ const EventDetails = () => {
   const { eventId } = useLocalSearchParams();
   console.log("No colapses nati", eventId);
 
+  const handleReservation = () => {
+    router.push(`/home/events/reservation/${eventId}`);
+  };
+
   /*
 
   useEffect(() => {
@@ -173,7 +177,8 @@ const EventDetails = () => {
       
                 <Text style={styles.activeEvent}>{compareDates(tempData.date, tempData.time)}</Text>
       
-                <TouchableOpacity style={styles.buyButton}>
+                <TouchableOpacity style={styles.buyButton}
+                onPress={() => handleReservation()}>
                   <Text style={styles.buyButtonText}>¡Comprar ahora!</Text>
                   <Text style={styles.buyButtonPrice}>${tempData.price} + I.V.A</Text>
                 </TouchableOpacity>
