@@ -25,6 +25,10 @@ const TicketSchema = new Schema({
         enum: ['active', 'inactive'],
         default: 'active'
     },
+    ticketQuantity: {
+        type: Number,
+        required: true
+    },
 }, {
     timestamps: true,
 });
