@@ -7,8 +7,8 @@ import { BarChart } from 'react-native-chart-kit';
 import myEvents from '@/mockups/adminEvents';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import * as Sharing from 'expo-sharing';
-import * as FileSaver from 'file-saver'; // Importa FileSaver para descargar archivos en la web
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; // Importa pdf-lib
+import * as FileSaver from 'file-saver'; 
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; 
 
 type EventState = string; 
 type EventCategory = string; 
@@ -52,16 +52,13 @@ export default function StatsPage() {
       try {
         const pdfDoc = await PDFDocument.create();
 
-        // Agregar una página al PDF
         const page = pdfDoc.addPage([595.28, 841.89]); 
         const { width, height } = page.getSize();
 
-        // Configurar fuentes y estilos
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); 
         const fontSize = 12;
 
-        // Agregar título
         page.drawText('Reporte de Estadísticas', {
           x: 50,
           y: height - 50,
@@ -69,7 +66,6 @@ export default function StatsPage() {
           font: boldFont, 
           color: rgb(0.88, 0.36, 0.27), 
         });
-        // Agregar sección de Distribución de Estados
 
         let yPosition = height - 80;
         page.drawText('Distribución de Estados:', {
