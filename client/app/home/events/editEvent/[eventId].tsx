@@ -1,8 +1,10 @@
 import MainPageContainer from '@/components/MainPageContainer';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Platform } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { RelativePathString, useRouter } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
+
 
 const EditEvent = () => {
   let oldData = {
@@ -34,6 +36,29 @@ const EditEvent = () => {
   const [capacityError, setCapacityError] = useState('');
   const [priceError, setPriceError] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
+
+
+  const pickImage = async () => {
+    // Solicitar permisos
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Se necesitan permisos para acceder a la galería de fotos.');
+        return;
+      }
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   useEffect(() => {
     if (date.length === 8 && !date.includes('/')) {
@@ -95,9 +120,9 @@ const EditEvent = () => {
     }
   
     const eventData = {
-      eventName: oldData.title, // Usamos el nombre original
+      eventName: oldData.title, 
       location,
-      category: oldData.category, // Usamos la categoría original
+      category: oldData.category,
       capacity: parseInt(capacity),
       price: parseFloat(price),
       date: formattedDate,
@@ -208,11 +233,17 @@ const EditEvent = () => {
     <MainPageContainer>
       <ScrollView style={styles.container}>
         <View style={styles.eventContainer}>
-          <TouchableOpacity style={styles.imagePlaceholder}>
+        <TouchableOpacity 
+            style={styles.imagePlaceholder}
+            onPress={pickImage}
+          >
             {image ? (
               <Image source={{ uri: image }} style={styles.image} />
             ) : (
-              <Text>Cambiar imagen</Text>
+              <View style={styles.placeholderContent}>
+                <Text style={styles.placeholderText}>+</Text>
+                <Text style={styles.placeholderSubText}>Agregar imagen</Text>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -392,11 +423,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 10,
-  },
   detailsContainer: {
     flex: 1,
   },
@@ -515,6 +541,24 @@ const styles = StyleSheet.create({
     marginTop: -10,
     marginBottom: 10,
     marginLeft: 25,
+  },
+  placeholderContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderText: {
+    fontSize: 48,
+    color: '#5FAA9D',
+    marginBottom: 8,
+  },
+  placeholderSubText: {
+    fontSize: 16,
+    color: '#5FAA9D',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
   },
 });
 
