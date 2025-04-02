@@ -92,7 +92,10 @@ const EditEvent = () => {
       setCapacityError('Por favor ingresa la capacidad');
       hasErrors = true;
     } else if (parseInt(capacity) <= 0) {
-      setCapacityError('La capacidad debe ser mayor a 0');
+      setCapacityError('Capacidad inválida');
+      hasErrors = true;
+    } else if (parseInt(capacity) < (oldData.capacity-oldData.availableSpots)){
+      setCapacityError(`La capacidad actualizada debe ser mayor a las reservas actuales. Reservas actuales: ${oldData.capacity - oldData.availableSpots}`);
       hasErrors = true;
     } else {
       setCapacityError('');
