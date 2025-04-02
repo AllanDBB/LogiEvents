@@ -1,8 +1,10 @@
+import MainPageContainer from '@/components/MainPageContainer';
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 
 const EventDetails = () => {
     return (
+      <MainPageContainer>
       <ScrollView style={styles.container}>
         <View style={styles.eventContainer}>
           <View style={styles.imagePlaceholder} />
@@ -40,6 +42,7 @@ const EventDetails = () => {
           </View>
         </View>
       </ScrollView>
+      </MainPageContainer>
     );
   };
   
