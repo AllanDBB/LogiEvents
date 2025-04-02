@@ -138,8 +138,14 @@ const EditEvent = () => {
     return eventData;
   };
 
+  const handleRemoveEvent = () => {
+
+    // asumo que algo debe de pasar aca pero no se 
+    router.push("/home/events/myEvents");
+  };
+
   const handleDateChange = (text) => {
-    // Eliminar cualquier carácter que no sea número
+    
     const numericValue = text.replace(/[^0-9]/g, '');
     const truncatedValue = numericValue.slice(0, 8);
     
@@ -352,7 +358,8 @@ const EditEvent = () => {
                 <Text style={styles.createButtonText}>Guardar cambios</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.createButton}>
+              <TouchableOpacity style={styles.createButton}
+              onPress={handleRemoveEvent}>
                 <Text style={styles.createButtonText}>Eliminar evento</Text>
               </TouchableOpacity>
             </View>
