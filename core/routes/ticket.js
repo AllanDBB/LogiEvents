@@ -10,7 +10,7 @@ const User = require('../models/user');
 const OTP = require('../models/otp');
 
 
-const sendEmail = require('../handlers/sendEmail');
+const {sendEmail} = require('../services/emailService');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();

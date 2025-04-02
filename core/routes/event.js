@@ -1,24 +1,23 @@
 // Load modules
 const express = require('express');
+const bcryptjs = require('bcryptjs');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+
 const passport = require('../middlewares/passport');
 const bodyHandler = require('../handlers/bodyHandler');
 const Event = require('../models/event');
 const User = require('../models/user');
-const OTP = require('../models/otp');
-const sendEmail = require('../handlers/sendEmail');
 const Ticket = require('../models/ticket');
 const OTP = require('../models/otp');
-const crypto = require('crypto');
 const Media = require('../models/media');
 const upload = require('../middlewares/multer');
-
-
 
 const router = express.Router();
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const { sendAdminCode, sendVerificationCode } = require('../services/smsService');
-const { sendEmail } = require('../handlers/sendEmail');
+const { sendEmail } = require('../services/emailService');
 
 router.post('/', requireAuth, upload.array('images', 5), bodyHandler, async (req, res) => {
     try {
@@ -314,4 +313,4 @@ router.get('/user/:userId', requireAuth, async (req, res) => {
     }
 });
 
-export default router;
+module.exports = router;
