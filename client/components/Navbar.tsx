@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   },
   btnGeneral: {
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     borderRadius: 4,
     marginLeft: 5,
     maxWidth: 90,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   btnSectionText: {
-    fontSize: 8,
+    fontSize: 12,
   },
   lightBtn1Text: {
     color: '#333333',
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
   menuButton: {
-    padding: 5,
+    padding: 2,
   },
   menuText: {
     fontSize: 24,
