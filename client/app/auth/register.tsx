@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: 14, 
     color: 'black', 
-    marginBottom: 15, // Aumentado para mejor espaciado
+    marginBottom: 15, 
   },
   row: {
     flexDirection: 'row', 

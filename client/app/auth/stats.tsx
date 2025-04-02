@@ -1,10 +1,14 @@
-import { StyleSheet, View, Text, useWindowDimensions, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, useWindowDimensions, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import React from 'react';
 import { useRouter } from "expo-router";
 import MainPageContainer from '@/components/MainPageContainer';
 import BackArrow from "@/components/BackArrow";
 import { BarChart } from 'react-native-chart-kit';
-import myEvents from '@/mockups/adminEvents'; 
+import myEvents from '@/mockups/adminEvents';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import * as Sharing from 'expo-sharing';
+import * as FileSaver from 'file-saver'; // Importa FileSaver para descargar archivos en la web
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; // Importa pdf-lib
 
 type EventState = string; 
 type EventCategory = string; 
@@ -32,8 +36,7 @@ export default function StatsPage() {
   };
 
   const maxValue = Math.max(...chartData.datasets[0].data);
-
-  const yAxisInterval = Math.ceil(maxValue / 5); // Dividir el máximo en 5 partes
+  const yAxisInterval = Math.ceil(maxValue / 5);
 
   const eventCategories = myEvents.reduce<Record<EventCategory, number>>((acc, event: Event) => {
     acc[event.category] = (acc[event.category] || 0) + 1;
@@ -44,10 +47,165 @@ export default function StatsPage() {
     .map(([category, count]) => ({ category, count }))
     .sort((a, b) => b.count - a.count);
 
+  const handleExportToPDF = async () => {
+    if (Platform.OS === 'web') {
+      try {
+        // Crear un nuevo documento PDF
+        const pdfDoc = await PDFDocument.create();
+
+        // Agregar una página al PDF
+        const page = pdfDoc.addPage([595.28, 841.89]); // Tamaño A4 en puntos (72 puntos por pulgada)
+        const { width, height } = page.getSize();
+
+        // Configurar fuentes y estilos
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold); // Fuente en negrita
+        const fontSize = 12;
+
+        // Agregar título
+        page.drawText('Reporte de Estadísticas', {
+          x: 50,
+          y: height - 50,
+          size: 18,
+          font: boldFont, // Usar fuente en negrita
+          color: rgb(0.88, 0.36, 0.27), // Color rojo (#E05C45)
+        });
+
+        // Agregar sección de Distribución de Estados
+        let yPosition = height - 80;
+        page.drawText('Distribución de Estados:', {
+          x: 50,
+          y: yPosition,
+          size: fontSize,
+          font: boldFont, // Usar fuente en negrita
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 20;
+        Object.entries(eventStates).forEach(([state, count]) => {
+          page.drawText(`${state}: ${count} eventos`, {
+            x: 50,
+            y: yPosition,
+            size: fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          yPosition -= 15;
+        });
+
+        // Agregar sección de Ranking de Categorías
+        yPosition -= 10;
+        page.drawText('Ranking de Categorías:', {
+          x: 50,
+          y: yPosition,
+          size: fontSize,
+          font: boldFont, // Usar fuente en negrita
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 20;
+        sortedCategories.forEach((item, index) => {
+          page.drawText(`${index + 1}. ${item.category} (${item.count} eventos)`, {
+            x: 50,
+            y: yPosition,
+            size: fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          yPosition -= 15;
+        });
+
+        // Agregar fecha de generación
+        yPosition -= 20;
+        page.drawText(`Generado el ${new Date().toLocaleDateString()}`, {
+          x: 50,
+          y: yPosition,
+          size: fontSize - 2,
+          font,
+          color: rgb(0.5, 0.5, 0.5), // Color gris
+        });
+
+        // Guardar el PDF como un archivo Blob
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+        // Descargar el archivo PDF
+        FileSaver.saveAs(blob, `Estadisticas_Eventos_${new Date().toISOString().split('T')[0]}.pdf`);
+      } catch (error) {
+        console.error('Error al generar el PDF:', error);
+        alert('Ocurrió un error al generar el PDF.');
+      }
+      return;
+    }
+
+    try {
+      // Generar el contenido HTML para el PDF
+      const htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #E05C45; text-align: center; }
+              .section { margin-bottom: 20px; }
+              .section-title { font-size: 18px; font-weight: bold; color: #E05C45; margin-bottom: 10px; }
+              .item { font-size: 14px; margin-bottom: 5px; }
+            </style>
+          </head>
+          <body>
+            <h1>Reporte de Estadísticas</h1>
+            <div class="section">
+              <div class="section-title">Distribución de Estados</div>
+              ${Object.entries(eventStates).map(([state, count]) => `
+                <div class="item">${state}: ${count} eventos</div>
+              `).join('')}
+            </div>
+            <div class="section">
+              <div class="section-title">Ranking de Categorías</div>
+              ${sortedCategories.map((item, index) => `
+                <div class="item">${index + 1}. ${item.category} (${item.count} eventos)</div>
+              `).join('')}
+            </div>
+            <div style="margin-top: 30px; font-size: 12px; text-align: center;">
+              Generado el ${new Date().toLocaleDateString()}
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Generar el PDF usando react-native-html-to-pdf
+      const options = {
+        html: htmlContent,
+        fileName: `Estadisticas_Eventos_${new Date().toISOString().split('T')[0]}`,
+        directory: 'Documents', // Cambiado de 'Descargas' a 'Documents'
+      };
+
+      console.log('PDF Options:', options); // Agregado para depuración
+
+      const pdf = await RNHTMLtoPDF.convert(options);
+
+      if (!pdf.filePath) {
+        throw new Error('No se pudo generar el archivo PDF');
+      }
+
+      // Compartir el PDF usando expo-sharing
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) {
+        alert('El PDF se generó pero no se puede compartir en esta plataforma');
+        return;
+      }
+
+      await Sharing.shareAsync(pdf.filePath, {
+        mimeType: 'application/pdf',
+        dialogTitle: 'Compartir Reporte PDF',
+        UTI: 'com.adobe.pdf',
+      });
+    } catch (error) {
+      console.error('Error al generar el PDF:', error);
+      alert('Ocurrió un error al generar el PDF.');
+    }
+  };
+
   return (
     <MainPageContainer isAuthenticated={false} showNavbar={true} showFooter={false} showChatButton={false}>
       <View style={styles.container}>
-        {/* Back Arrow */}
         <BackArrow onPress={() => router.back()} color="#000" />
 
         <View style={isMobile ? styles.headerMobile : styles.headerDesktop}>
@@ -70,13 +228,13 @@ export default function StatsPage() {
                 yAxisLabel=""
                 yAxisSuffix="" 
                 fromZero={true} 
-                yAxisInterval={yAxisInterval} // Usar el intervalo dinámico
+                yAxisInterval={yAxisInterval}
                 chartConfig={{
                   backgroundColor: '#ffffff',
                   backgroundGradientFrom: '#ffffff',
                   backgroundGradientTo: '#ffffff',
                   decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`, // Naranja sólido
+                  color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`,
                   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
                   fillShadowGradient: '#FF0000',
                   fillShadowGradientOpacity: 1,
@@ -92,7 +250,6 @@ export default function StatsPage() {
               />
             </View>
 
-            {/* Lista de Rankings */}
             <View style={styles.rankingsContainer}>
               {sortedCategories.map((item, index) => (
                 <Text key={item.category} style={styles.rankingsItem}>
@@ -102,6 +259,15 @@ export default function StatsPage() {
             </View>
           </View>
         </ScrollView>
+
+        <View style={styles.exportButtonContainer}>
+          <TouchableOpacity 
+            style={styles.exportButton}
+            onPress={handleExportToPDF}
+          >
+            <Text style={styles.exportButtonText}>Exportar a PDF</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </MainPageContainer>
   );
@@ -172,15 +338,31 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     elevation: 2,
   },
-  rankingsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
   rankingsItem: {
     fontSize: 16,
     color: '#555',
     marginBottom: 5,
+  },
+  exportButtonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 10,
+  },
+  exportButton: {
+    backgroundColor: '#E05C45',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  exportButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

@@ -112,7 +112,9 @@ export default function RegisterAdmin() {
 
 
         <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Continuar</Text>
+          <Text 
+          onPress={() => router.push('/home')}
+          style={styles.buttonText}>Continuar</Text>
         </TouchableOpacity>
 
         <View style={styles.linkContainer}>
