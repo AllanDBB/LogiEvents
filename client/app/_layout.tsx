@@ -10,6 +10,7 @@ export default function RootLayout() {
         <Stack.Screen name="home" options={{ title: "Home" }} />
         <Stack.Screen name="auth/login" options={{ title: "Login" }} />
         <Stack.Screen name="auth/register" options={{ title: "Register" }} />
+        <Stack.Screen name="auth/verify-code" options={{ title: "Verify OTP" }} />
       </Stack>
     </View>
   );

@@ -7,7 +7,6 @@ export function useUser() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load current user
   const loadCurrentUser = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -23,12 +22,26 @@ export function useUser() {
     }
   }, []);
 
-  // Update user profile
   const updateProfile = useCallback(async (userData: UserUpdateData) => {
     setLoading(true);
     setError(null);
     
     try {
+      if (userData.profileImage && 
+          userData.profileImage !== user?.profileImage && 
+          user?.id &&
+          (userData.profileImage.startsWith('file:') || 
+           userData.profileImage.startsWith('content:'))) {
+        
+        const imageUrl = await userService.uploadProfileImage(userData.profileImage, user.id);
+        
+        if (imageUrl) {
+          userData.profileImage = imageUrl;
+        } else {
+          userData.profileImage = user.profileImage;
+        }
+      }
+      
       const updatedUser = await userService.updateUserProfile(userData);
       if (updatedUser) {
         setUser(updatedUser);
@@ -41,9 +54,8 @@ export function useUser() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
-  // Change user password
   const changePassword = useCallback(async (oldPassword: string, newPassword: string) => {
     setLoading(true);
     setError(null);
@@ -63,7 +75,6 @@ export function useUser() {
     }
   }, []);
 
-    // Logout user
   const logout = useCallback(async () => {
     setLoading(true);
     setError(null);
