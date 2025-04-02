@@ -1,14 +1,24 @@
 import { StyleSheet, View, Text, ImageBackground, TextInput, TouchableOpacity, useWindowDimensions } from 'react-native';
-import React from "react";
+import React, { useState } from "react";
 import BackArrow from "@/components/BackArrow";
 import { useRouter } from "expo-router";
-
+import ConfirmationPassword from "@/components/ConfirmPasswordPopUp";
 
 export default function ConfirmPassword() {
-    const router = useRouter(); 
-    
+  const router = useRouter();
   const { width } = useWindowDimensions();
-  const isMobile = width < 768; 
+  const isMobile = width < 768;
+
+  const [popupVisible, setPopupVisible] = useState(false);
+
+  const handlePasswordChange = () => {
+    setPopupVisible(true); 
+  };
+
+  const handleClosePopup = () => {
+    setPopupVisible(false); 
+    router.push("/auth/login"); 
+  };
 
   return (
     <View style={styles.container}>
@@ -28,7 +38,6 @@ export default function ConfirmPassword() {
             style={styles.input}
             keyboardType="default"
             secureTextEntry={true}
-
           />
 
           <Text style={styles.label}>Confirma la contraseña</Text>
@@ -38,12 +47,18 @@ export default function ConfirmPassword() {
             secureTextEntry={true}
           />
 
-          <TouchableOpacity style={styles.button} onPress={() => console.log('Cambiar ahora')}>
+          <TouchableOpacity style={styles.button} onPress={handlePasswordChange}>
             <Text style={styles.buttonText}>Cambiar ahora</Text>
           </TouchableOpacity>
         </View>
         <BackArrow onPress={() => router.back()} />
-        </ImageBackground>
+      </ImageBackground>
+
+      <ConfirmationPassword
+        visible={popupVisible}
+        onClose={handleClosePopup}
+        message="El cambio de contraseña fue exitoso."
+      />
     </View>
   );
 }
@@ -64,8 +79,8 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    width: '90%', 
-    height: 'auto', 
+    width: '90%',
+    height: 'auto',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -78,13 +93,13 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    width: '50%', 
-    height: '100%', 
+    width: '50%',
+    height: '100%',
   },
   headerContainer: {
     marginBottom: 20,
     alignItems: 'center',
-    marginTop: 30, 
+    marginTop: 30,
   },
   title: {
     fontSize: 36,

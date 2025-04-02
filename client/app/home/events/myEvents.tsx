@@ -68,7 +68,12 @@ export default function MyEventsScreen() {
   }, [width]);
 
   const handleEventPress = (event: Event) => {
-    router.push(`/home/events/${event.id}`);
+    if (user?.role === 'admin') {
+      router.push(`/home/events/editEvent/${event.id}`);
+      console.log(user?.role);
+    }  else {
+      router.push(`/home/events/${event.id}`);
+    }
   };
 
   const handleExploreEvents = () => {

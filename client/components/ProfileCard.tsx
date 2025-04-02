@@ -19,7 +19,7 @@ function ProfileCard(props: ProfileCardProps) {
         {props.avatar ? (
           <Image source={{ uri: props.avatar }} style={props.profileStyles.avatarImage} />
         ) : (
-          <Text style={props.profileStyles.initials}>NA</Text>
+          <Image source={{ uri: "https://ui-avatars.com/api/?name="+props.name+props.role }} style={props.profileStyles.avatarImage} />
         )}
       </View>
       <View>
