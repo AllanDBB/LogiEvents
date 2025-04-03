@@ -76,7 +76,6 @@ export const login = async (data) => {
 export const updateUser  = async (id, data, token) => {
   try {
 
-
     const response = await api.patch(`/user/${id}`, data, {
       headers: {
         Authorization: `${token}`, 
