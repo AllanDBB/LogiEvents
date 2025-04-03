@@ -9,9 +9,9 @@ const PORT = process.env.PORT;
 // Configuración CORS (¡Añade esto!)
 const corsOptions = {
   origin: [
-    'http://localhost:8081', // Para desarrollo en React Native
-    'http://localhost:3000', // Para desarrollo web frontend
-    'https://tu-app-frontend.com' // Tu dominio en producción
+    'http://localhost:8081', 
+    'http://localhost:3000',
+    'https://logi-events.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
