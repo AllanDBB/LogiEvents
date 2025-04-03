@@ -9,7 +9,7 @@ import {
   FlatList,
   Platform
 } from "react-native";
-import { RelativePathString, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import ProfileCard from "@/components/ProfileCard";
 import EventCategoryTabs from "@/components/EventCategoryTabs";
 import SearchBar from "@/components/SearchBar";
@@ -18,8 +18,8 @@ import MainPageContainer from "@/components/MainPageContainer";
 import type { EventCategory, Event } from "@/models/event";
 import type { userRole } from "@/models/user";
 import { useEvents } from "@/hooks/useEvents"; 
-import { useUser  } from "@/hooks/useUser";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 function HomeScreen() {
   const router = useRouter();
@@ -31,7 +31,7 @@ function HomeScreen() {
   const [isCompactView, setIsCompactView] = useState(false);
   const [key, setKey] = useState(0);
   const [categories, setCategories] = useState<EventCategory[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser ] = useState<any>(null);
 
   const {
     filteredEvents,
@@ -47,29 +47,32 @@ function HomeScreen() {
     setSearchQuery
   } = useEvents("Ocio");
 
-  useEffect(() => {
-    const checkToken = async () => {
-      const token = await AsyncStorage.getItem('jwtToken');
-      
-      if (!token) {
-        router.push('/auth/login');
-        return; 
-      }
-  
-      const userData = await AsyncStorage.getItem('user');
+  const checkTokenAndLoadUser  = async () => {
+    const token = await AsyncStorage.getItem('token');
 
-      if (!userData) {
-        router.push('/auth/login');
-        return; 
-      }
+    if (!token) {
+      router.push('/auth/login');
+      return; 
+    }
 
-      const user = JSON.parse(userData);
-      setUser (user);
-      setUserRole(user.role);
-    };
-  
-    checkToken();
-  }, [router]);
+    const userData = await AsyncStorage.getItem('user');
+
+    if (!userData) {
+      router.push('/auth/login');
+      return; 
+    }
+
+    const user = JSON.parse(userData);
+    setUser (user);
+    setUserRole(user.role);
+  };
+
+  // useFocusEffect to check token and load user every time the screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      checkTokenAndLoadUser ();
+    }, [])
+  );
 
   useEffect(() => {
     const screenWidth = 
@@ -131,7 +134,7 @@ function HomeScreen() {
   };
 
   const handleRetry = () => {
-    if (userRole === "admin") loadUserEvents();
+ if (userRole === "admin") loadUserEvents();
     else loadAvailableEvents();
   };
 
@@ -293,7 +296,7 @@ function HomeScreen() {
     );
   }
 
- return (
+  return (
     <MainPageContainer>
       <View style={styles.contentContainer}>
         {renderHeader()}
@@ -473,7 +476,7 @@ const searchStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
- elevation: 2,
+    elevation: 2,
     flexDirection: "row",
     alignItems: "center",
   },

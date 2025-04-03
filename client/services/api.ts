@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'https://core-swart-six.vercel.app';
 
@@ -56,6 +57,15 @@ export const verifyAuthCode = async (data) => {
 export const login = async (data) => {
   try {
     const response = await api.post('/auth/login', data);
+
+    if (response.data.token) {
+      await AsyncStorage.setItem('token', response.data.token);
+    }
+
+    if (response.data.user) {
+      await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+
     return response;
   } catch (error) {
     console.error('Error en el inicio de sesión:', error);
@@ -63,10 +73,22 @@ export const login = async (data) => {
   }
 }
 
-export const updateUser  = async (id, data) => {
+export const updateUser  = async (id, data, token) => {
   try {
-    const response = await api.patch(`/user/${id}`, data); 
-    return response.data; 
+
+
+    const response = await api.patch(`/user/${id}`, data, {
+      headers: {
+        Authorization: `${token}`, 
+      },
+    });
+
+    if (response.data) {
+      await AsyncStorage.setItem('user', JSON.stringify(response.data));
+    }
+
+
+    return response.data;
   } catch (error) {
     console.error('Error actualizando el usuario:', error);
     throw error;

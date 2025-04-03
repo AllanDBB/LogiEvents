@@ -33,15 +33,8 @@ export default function Login() {
       if (response.status !== 200) {
         throw new Error(response.data?.message || 'Credenciales inválidas');
       }
-  
-      const token = response.data.token.split(' ')[1];
-      await AsyncStorage.setItem('jwtToken', token);
-      console.log('Token almacenado:', token);
-  
-      const user = response.data.user;
-      await AsyncStorage.setItem('user', JSON.stringify(user));
-      console.log('Usuario almacenado:', user);
-      
+
+
       router.push('/home'); 
     } catch (error) {
       setErrorMessage(error.message);

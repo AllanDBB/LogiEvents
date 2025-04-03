@@ -33,7 +33,6 @@ export default function ProfileScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [profileImage, setProfileImage] = useState<string | undefined>(undefined);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  
   const isMobile = width < 768;
 
   // Load user data from AsyncStorage
@@ -45,6 +44,7 @@ export default function ProfileScreen() {
         if (userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
+
           // Set initial values for form fields
           setName(parsedUser.firstName || "");
           setLastname(parsedUser.lastName || "");
@@ -52,7 +52,6 @@ export default function ProfileScreen() {
           setPhone(parsedUser.phoneNumber || "");
           setProfileImage(parsedUser.profileImage || undefined);
         } else {
-          // Redirigir si no hay datos de usuario
           router.push('/auth/login');
         }
       } catch (error) {
@@ -91,14 +90,23 @@ export default function ProfileScreen() {
   
     setIsSaving(true);
     
+    let token = null;
     try {
-      const userId = user._id; 
+      token = await AsyncStorage.getItem("token");
+    } catch (error) {
+      console.error("Error al obtener el token:", error);
+    }
+
+
+    try {
+      const userId = user._id || user.id; 
       const success = await updateUser(userId, {
         firstName: name,
         lastName: lastname,
         email,
         phoneNumber: phone,
-      });
+      },
+      token);
       
       if (success) {
         setIsEditing(false);
