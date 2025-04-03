@@ -1,11 +1,63 @@
-import { StyleSheet, View, Text, ImageBackground, Image, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, View, Text, ImageBackground, Image, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import BackArrow from "@/components/BackArrow";
-
+import { login } from "@/services/api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
   const router = useRouter(); 
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      
+      if (!formData.email || !formData.password) {
+        throw new Error('Por favor ingrese su correo y contraseña');
+      }
+  
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(formData.email)) {
+        throw new Error('Por favor ingrese un correo electrónico válido');
+      }
+  
+      const response = await login(formData);
+      
+      if (response.status !== 200) {
+        throw new Error(response.data?.message || 'Credenciales inválidas');
+      }
+  
+      const token = response.data.token.split(' ')[1];
+      await AsyncStorage.setItem('jwtToken', token);
+      console.log('Token almacenado:', token);
+  
+      const user = response.data.user;
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      console.log('Usuario almacenado:', user);
+      
+      router.push('/home'); 
+    } catch (error) {
+      setErrorMessage(error.message);
+      setModalVisible(true);
+    } finally {
+      setLoading(false);
+    }
+  };  
+
+  const handleInputChange = (name: string, value: string) => {
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -22,28 +74,36 @@ export default function Login() {
               <Text style={styles.bold}>LogiEvents</Text>
             </Text>
           </View>
-          <BackArrow onPress={() => router.back()} />
         </ImageBackground>
       </View>
 
       <View style={styles.rightContainer}>
-
         <Text style={styles.title}>Inicio de sesión</Text>
 
         <Text style={styles.label}>Usuario o correo electrónico</Text>
         <TextInput
           style={styles.input}
           keyboardType="email-address"
+          placeholder="name@logievents.com"
+          placeholderTextColor="#A9A9A9"
+          value={formData.email}
+          onChangeText={(text) => handleInputChange('email', text)}
+          autoCapitalize="none"
         />
 
         <Text style={styles.label}>Contraseña</Text>
         <TextInput
           style={styles.input}
           keyboardType="default"
+          placeholder="********"
+          placeholderTextColor="#A9A9A9"
+          value={formData.password}
+          onChangeText={(text) => handleInputChange('password', text)}
           secureTextEntry={true}
+          autoCapitalize="none"
         />
 
-<View style={styles.linkContainer2}>
+        <View style={styles.linkContainer2}>
           <Text style={styles.linkText2}>
             ¿Olvidaste tu contraseña?{' '}
             <Text
@@ -55,11 +115,15 @@ export default function Login() {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/home')}>
-          <Text style={styles.buttonText}>Ir ahora</Text>
+        <TouchableOpacity 
+          style={[styles.button, loading && styles.disabledButton]} 
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Cargando...' : 'Iniciar sesión'}
+          </Text>
         </TouchableOpacity>
-
-
 
         <View style={styles.linkContainer}>
           <Text style={styles.linkText}>
@@ -73,6 +137,23 @@ export default function Login() {
           </Text>
         </View>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Error al iniciar sesión</Text>
+            <Text style={styles.modalMessage}>Credeciales incorrectos</Text>
+            <TouchableOpacity style={styles.modalButton} onPress={closeModal}>
+              <Text style={styles.modalButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -110,12 +191,6 @@ const styles = StyleSheet.create({
     width: '100%', 
   },
 
-  leftImage: {
-    width: 150, 
-    height: 150, 
-    marginTop: 10, 
-  },
-
   rightContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF', 
@@ -138,7 +213,6 @@ const styles = StyleSheet.create({
     marginBottom: 35,
   },
   
-  
   label: {
     color: 'black',
     fontSize: 16,
@@ -147,8 +221,6 @@ const styles = StyleSheet.create({
     marginLeft: '10%', 
     marginBottom: 10,
   },
-  
-
   
   input: {
     width: '80%',
@@ -163,18 +235,6 @@ const styles = StyleSheet.create({
     borderColor: 'black',
   },
   
-  row: {
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    width: '80%', 
-    marginBottom: 6, 
-  },
-  
-  column: {
-    flex: 1, 
-    marginHorizontal: 5, 
-  },
-  
   bold: {
     fontWeight: 'bold', 
   },
@@ -186,14 +246,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 50,
   },
+
+  disabledButton: {
+    backgroundColor: '#666',
+  },
   
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  
-
   
   boldUnderline: {
     fontWeight: 'bold',
@@ -207,7 +269,7 @@ const styles = StyleSheet.create({
   },
   
   linkText: {
-    color: 'color',
+    color: 'black',
     fontSize: 12,
     textAlign: 'center',
     textDecorationLine: 'underline', 
@@ -220,11 +282,46 @@ const styles = StyleSheet.create({
   },
 
   linkText2: {
-    color: 'color',
+    color: 'black',
     fontSize: 12,
     textAlign: 'right',
     textDecorationLine: 'underline', 
   },
 
-  
+  // Estilos para el modal
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+  },
+  modalContent: {
+    width: '30%', 
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 15, 
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: 'red', 
+  },
+  modalButton: {
+    backgroundColor: 'black',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
