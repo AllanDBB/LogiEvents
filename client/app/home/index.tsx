@@ -118,7 +118,7 @@ function HomeScreen() {
   };
 
   const handleViewStats = () => {
-    router.push("/home/stats" as RelativePathString);
+    router.push("/home/events/stats");
   };
 
   const handleSearch = (text: string) => {

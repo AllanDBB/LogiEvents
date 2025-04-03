@@ -51,6 +51,7 @@ export default function RequestPassword() {
             <Text style={styles.buttonText}>Cambiar ahora</Text>
           </TouchableOpacity>
         </View>
+        
         <BackArrow onPress={() => router.back()} />
       </ImageBackground>
 

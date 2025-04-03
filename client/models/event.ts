@@ -10,4 +10,6 @@ export type Event = {
   time?: string;        // Ej: "08:00 AM"
   location?: string;    // Ej: "Liberia, Guanacaste"
   availableSpots?: number; // Espacios disponibles
+
+  state?: string; // Estado del evento (Ej: "Activo", "Inactivo")
 };
