@@ -94,4 +94,27 @@ export const updateUser  = async (id, data, token) => {
   }
 }
 
+
+export const recoverPassword = async (data) => {
+  try {
+    const response = await api.post('/auth/forgot-password', data);
+    return response;
+  } catch (error) {
+    console.error('Error en la recuperación de contraseña:', error);
+    throw error;
+  }
+}
+
+export const resetPassword = async (data) => {
+  try {
+    const response = await api.post('/auth/reset-password/', data);
+    return response;
+  } catch (error) {
+    console.error('Error en el restablecimiento de contraseña:', error);
+    throw error;
+  }
+}
+
+
+
 export default api;

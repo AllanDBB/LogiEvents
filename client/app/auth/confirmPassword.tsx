@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import BackArrow from "@/components/BackArrow";
 import { useRouter } from "expo-router";
 import ConfirmationPassword from "@/components/ConfirmPasswordPopUp";
+import { resetPassword } from "@/services/api"; 
 
 export default function ConfirmPassword() {
   const router = useRouter();
@@ -10,9 +11,22 @@ export default function ConfirmPassword() {
   const isMobile = width < 768;
 
   const [popupVisible, setPopupVisible] = useState(false);
+  const [email, setEmail] = useState(""); 
+  const [otp, setOtp] = useState(""); 
+  const [newPassword, setNewPassword] = useState(""); 
+  const [loading, setLoading] = useState(false); 
 
-  const handlePasswordChange = () => {
-    setPopupVisible(true); 
+  const handlePasswordChange = async () => {
+    setLoading(true); 
+
+    try {
+      await resetPassword({ email, code: otp, newPassword });
+      setPopupVisible(true); 
+    } catch (error) {
+      console.error('Error al restablecer la contraseña:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClosePopup = () => {
@@ -33,22 +47,33 @@ export default function ConfirmPassword() {
             <Text style={styles.subtitle}>Cambio de contraseña</Text>
           </View>
 
+          <Text style={styles.label}>Correo electrónico</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail} 
+          />
+
+          <Text style={styles.label}>Código OTP</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="default"
+            value={otp}
+            onChangeText={setOtp} 
+          />
+
           <Text style={styles.label}>Nueva contraseña</Text>
           <TextInput
             style={styles.input}
             keyboardType="default"
             secureTextEntry={true}
+            value={newPassword}
+            onChangeText={setNewPassword} 
           />
 
-          <Text style={styles.label}>Confirma la contraseña</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="default"
-            secureTextEntry={true}
-          />
-
-          <TouchableOpacity style={styles.button} onPress={handlePasswordChange}>
-            <Text style={styles.buttonText}>Cambiar ahora</Text>
+          <TouchableOpacity style={styles.button} onPress={handlePasswordChange} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? 'Cambiando...' : 'Cambiar ahora'}</Text>
           </TouchableOpacity>
         </View>
         <BackArrow onPress={() => router.back()} />

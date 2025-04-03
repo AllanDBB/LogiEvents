@@ -11,16 +11,29 @@ import {
 import BackArrow from "@/components/BackArrow";
 import { useRouter } from "expo-router";
 import RequestPopUp from "@/components/RequestPasswordPopUp";
+import { recoverPassword } from "@/services/api";
 
 export default function RequestPassword() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
-
+  const [formData, setFormData] = useState({
+    email: "",
+  });
+  const [loading, setLoading] = useState(false);
   const [popupVisible, setPopupVisible] = useState(false);
 
-  const handleConfirmPasswordChange = () => {
-    setPopupVisible(true); 
+  const handleConfirmPasswordChange = async () => {
+    setLoading(true); 
+  
+    try {
+      await recoverPassword({ email: formData.email }); 
+      setPopupVisible(true); 
+    } catch (error) {
+      console.error('Error al solicitar el cambio de contraseña:', error);
+    } finally {
+      setLoading(false); 
+    }
   };
 
   const handleClosePopup = () => {
@@ -41,14 +54,16 @@ export default function RequestPassword() {
             <Text style={styles.subtitle}>Solicitar cambio de contraseña</Text>
           </View>
 
-          <Text style={styles.label}>Identificación</Text>
-          <TextInput style={styles.input} keyboardType="default" />
-
           <Text style={styles.label}>Correo electrónico</Text>
-          <TextInput style={styles.input} keyboardType="email-address" />
+          <TextInput 
+            style={styles.input} 
+            keyboardType="email-address" 
+            value={formData.email}
+            onChangeText={(text) => setFormData({ ...formData, email: text })} 
+          />
 
-          <TouchableOpacity style={styles.button} onPress={handleConfirmPasswordChange}>
-            <Text style={styles.buttonText}>Cambiar ahora</Text>
+          <TouchableOpacity style={styles.button} onPress={handleConfirmPasswordChange} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? 'Cargando...' : 'Cambiar ahora'}</Text>
           </TouchableOpacity>
         </View>
         
