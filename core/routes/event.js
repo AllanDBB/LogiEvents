@@ -68,10 +68,22 @@ router.post('/', requireAuth, upload.array('images', 5), bodyHandler, async (req
 });
 
 module.exports = router;
+
 // Get all events
 router.get('/', async (req, res) => {
     try {
         const events = await Event.find().populate('attendees', 'firstName lastName email phoneNumber role');
+        res.status(200).json(events);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Get all events created by a user
+router.get('/created/:userId', requireAuth, async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const events = await Event.find({ createdBy: userId }).populate('attendees', 'firstName lastName email phoneNumber role');
         res.status(200).json(events);
     } catch (error) {
         res.status(400).json({ error: error.message });
