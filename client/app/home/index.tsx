@@ -18,12 +18,12 @@ import MainPageContainer from "@/components/MainPageContainer";
 import type { EventCategory, Event } from "@/models/event";
 import type { userRole } from "@/models/user";
 import { useEvents } from "@/hooks/useEvents"; 
-import { useUser } from "@/hooks/useUser";
+import { useUser  } from "@/hooks/useUser";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function HomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { user } = useUser();
   
   const [userRole, setUserRole] = useState<userRole>("user");
   const [isMobile, setIsMobile] = useState(false);
@@ -31,7 +31,8 @@ function HomeScreen() {
   const [isCompactView, setIsCompactView] = useState(false);
   const [key, setKey] = useState(0);
   const [categories, setCategories] = useState<EventCategory[]>([]);
-  
+  const [user, setUser] = useState<any>(null);
+
   const {
     filteredEvents,
     loading,
@@ -46,7 +47,30 @@ function HomeScreen() {
     setSearchQuery
   } = useEvents("Ocio");
 
-  // Responsive layout setup with improved web detection
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = await AsyncStorage.getItem('jwtToken');
+      if (token) {
+        const user = await AsyncStorage.getItem('user');
+        if (user) {
+          setUser(JSON.parse(user));
+        } else {
+          router.push('/auth/login'); 
+        }
+        if (user) {
+          setUserRole(user.role);
+        }
+      } else {
+        router.push('/auth/login'); 
+      }
+      if (!token) {
+        router.push('/auth/login'); 
+      }
+    };
+
+    checkToken();
+  }, [router]);
+
   useEffect(() => {
     const screenWidth = 
       Platform.OS === 'web' && typeof window !== 'undefined' 
@@ -56,16 +80,13 @@ function HomeScreen() {
     const isMobileView = screenWidth < 768;
     setIsMobile(isMobileView);
     
-    // Set columns based on actual screen width
     if (screenWidth > 1400) setNumColumns(6);
     else if (screenWidth > 1100) setNumColumns(4);
     else if (screenWidth > 850) setNumColumns(3);
     else setNumColumns(2);
     
-    // Set compact view based on real width
     setIsCompactView(screenWidth < 600);
     
-    // Force layout update when width changes
     if (Platform.OS === 'web') {
       setKey(prevKey => prevKey + 1);
     }
@@ -75,7 +96,7 @@ function HomeScreen() {
     const isAdmin = user?.role === "admin";
     setUserRole(isAdmin ? "admin" : "user");
     
-    if (isAdmin)  loadUserEvents();
+    if (isAdmin) loadUserEvents();
     else loadAvailableEvents();
   }, [user, loadUserEvents, loadAvailableEvents]);
   
@@ -88,7 +109,6 @@ function HomeScreen() {
     }
   }, [getCategories]);
 
-  // Event handlers
   const handleEventPress = (event: Event) => {
     router.push(`/home/events/${event.id}`);
   };
@@ -115,7 +135,6 @@ function HomeScreen() {
     else loadAvailableEvents();
   };
 
-  // Render events in grid - improved for web
   const renderEventItem = ({ item }: { item: Event }) => (
     <View 
       style={{
@@ -135,13 +154,12 @@ function HomeScreen() {
     </View>
   );
 
-  // Render header based on device type
   const renderHeader = () => (
     isMobile ? (
       <View>
         <View style={styles.header}>
           <ProfileCard 
-            name={user ? `${user.name} ${user.lastname}`.toUpperCase() : ""}
+            name={user ? `${user.firstName} ${user.lastName}`.toUpperCase() : ""}
             role={user ? user.role : ""}
             avatar={user?.profileImage}
             profileStyles={profileStyles} 
@@ -160,7 +178,7 @@ function HomeScreen() {
     ) : (
       <View style={styles.header}>
         <ProfileCard 
-          name={user ? `${user.name} ${user.lastname}`.toUpperCase() : ""}
+          name={user ? `${user.firstName} ${user.lastName}`.toUpperCase() : ""}
           role={user ? user.role : ""}
           avatar={user?.profileImage}
           profileStyles={profileStyles} 
@@ -177,7 +195,6 @@ function HomeScreen() {
     )
   );
 
-  // Render events list
   const renderEventsList = () => (
     <View style={styles.eventsContainer}>
       {loading ? (
@@ -224,7 +241,6 @@ function HomeScreen() {
     </View>
   );
 
-  // Loading state
   if (loading && filteredEvents.length === 0) {
     return (
       <MainPageContainer showNavbar={false} showFooter={false}>
@@ -236,7 +252,6 @@ function HomeScreen() {
     );
   }
 
-  // Error state
   if (error && filteredEvents.length === 0) {
     return (
       <MainPageContainer showNavbar={false} showFooter={false}>
@@ -253,7 +268,6 @@ function HomeScreen() {
     );
   }
 
-  // Admin view
   if (userRole === "admin") {
     return (
       <MainPageContainer>
@@ -279,8 +293,7 @@ function HomeScreen() {
     );
   }
 
-  // Standard user view
-  return (
+ return (
     <MainPageContainer>
       <View style={styles.contentContainer}>
         {renderHeader()}
@@ -460,7 +473,7 @@ const searchStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 2,
+ elevation: 2,
     flexDirection: "row",
     alignItems: "center",
   },

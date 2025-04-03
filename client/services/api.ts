@@ -53,5 +53,15 @@ export const verifyAuthCode = async (data) => {
   }
 }
 
+export const login = async (data) => {
+  try {
+    const response = await api.post('/auth/login', data);
+    return response;
+  } catch (error) {
+    console.error('Error en el inicio de sesión:', error);
+    throw error;
+  }
+}
+
 
 export default api;
