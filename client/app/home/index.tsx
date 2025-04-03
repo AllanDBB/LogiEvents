@@ -50,24 +50,24 @@ function HomeScreen() {
   useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('jwtToken');
-      if (token) {
-        const user = await AsyncStorage.getItem('user');
-        if (user) {
-          setUser(JSON.parse(user));
-        } else {
-          router.push('/auth/login'); 
-        }
-        if (user) {
-          setUserRole(user.role);
-        }
-      } else {
-        router.push('/auth/login'); 
-      }
+      
       if (!token) {
-        router.push('/auth/login'); 
+        router.push('/auth/login');
+        return; 
       }
-    };
+  
+      const userData = await AsyncStorage.getItem('user');
 
+      if (!userData) {
+        router.push('/auth/login');
+        return; 
+      }
+
+      const user = JSON.parse(userData);
+      setUser (user);
+      setUserRole(user.role);
+    };
+  
     checkToken();
   }, [router]);
 
