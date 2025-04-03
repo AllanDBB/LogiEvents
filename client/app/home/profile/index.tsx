@@ -241,12 +241,7 @@ export default function ProfileScreen() {
             <Text style={styles.editButtonText}>Editar Perfil</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.changePasswordButton]} 
-            onPress={handleChangePassword}
-          >
-            <Text style={styles.changePasswordButtonText}>Cambiar Contraseña</Text>
-          </TouchableOpacity>
+
         </>
       )}
 
