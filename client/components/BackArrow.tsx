@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { Platform, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-
-const BackArrow = ({ onPress }: { onPress: () => void }) => {
+const BackArrow = ({ onPress, color = "#fff" }: { onPress: () => void; color?: string }) => {
   useEffect(() => {
     // Only run in web environment
     if (Platform.OS === 'web') {
@@ -13,16 +12,16 @@ const BackArrow = ({ onPress }: { onPress: () => void }) => {
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Ionicons name="arrow-back" size={19} color="#fff" />
+      <Ionicons name="arrow-back" size={19} color={color} />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute', 
-    top: 10,              
-    left: 20,             
+    position: 'absolute',
+    top: 10,
+    left: 20,
     padding: 8,
   },
 });

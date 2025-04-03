@@ -188,9 +188,23 @@ export default function Register() {
             </View>
           </View>
 
-          <Text style={styles.termsText}>
-            Al registrarse acepta nuestros <Text style={styles.boldUnderline}>Términos de uso</Text> y <Text style={styles.boldUnderline}>Políticas de privacidad</Text>.
+      <Text style={styles.termsText}>
+          Al registrarse acepta nuestros{' '}
+          <Text
+            style={styles.boldUnderline}
+            onPress={() => router.push('/policies')}
+          >
+            Términos de uso
+          </Text>{' '}
+          y{' '}
+          <Text
+            style={styles.boldUnderline}
+            onPress={() => router.push('/policies')}
+          >
+            Políticas de privacidad
           </Text>
+        </Text>
+
 
           <TouchableOpacity 
             style={styles.button} 
@@ -360,7 +374,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: 14, 
     color: 'black', 
-    marginBottom: 15, // Aumentado para mejor espaciado
+    marginBottom: 15, 
   },
   row: {
     flexDirection: 'row', 

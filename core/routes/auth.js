@@ -204,7 +204,25 @@ router.post('/login', async (req, res) => {
         
         const token = jwt.sign(payload, secret, { expiresIn: 3600 });
 
-        res.json({ token: `Bearer ${token}` });
+        // Return success response with token & user 
+        res.status(200).json({
+            success: true,
+            message: 'User logged in successfully',
+            token: `Bearer ${token}`,
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                businessID: user.businessID,
+                DNI: user.DNI,
+                address: user.address,
+                verified: user.verified,
+                role: user.role
+            }
+        });
+        
 
     } catch (error){
         res.status(400).json({ error: error.message });
