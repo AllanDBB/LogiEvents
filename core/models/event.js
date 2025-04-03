@@ -4,17 +4,16 @@ const mongoose = require('mongoose');
 const EventSchema = new mongoose.Schema({
     name: { type: String, required: true },
     date: { type: Date, required: true },
+    hour: { type: String, required: true },
     location: { type: String, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
-    ticketType: { type: String, required: true },
-    images: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Media' }],
-    tags: [{ type: String }],
+    image: { type: mongoose.Schema.Types.ObjectId, ref: 'Media' },
     attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     capacity: { type: Number, required: true },
     status: {
         type: String,
-        enum: ['active', 'inactive'],
+        enum: ['activo', 'agotado', 'pasado', 'cancelado', 'proximamente'],
         default: 'active'
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

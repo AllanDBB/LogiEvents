@@ -19,47 +19,33 @@ const requireAuth = passport.authenticate('jwt', { session: false });
 const { sendAdminCode, sendVerificationCode } = require('../services/smsService');
 const { sendEmail } = require('../services/emailService');
 
-router.post('/', requireAuth, upload.array('images', 5), bodyHandler, async (req, res) => {
+// Create a new event
+router.post('/', requireAuth, async (req, res) => {
+
     try {
-        const { name, date, location, description, price, ticketType, tags, capacity } = req.body;
-        
+        const { name, date, hour, location, description, price, image, capacity } = req.body;
+
         const user = await User.findById(req.user._id);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
         if (user.role !== 'admin') {
-            return res.status(403).json({ error: 'You do not have permission to update this event' });
-        }
-        
-        const eventDate = new Date(date);
-        const currentDate = new Date();
-        if (eventDate <= currentDate) {
-            return res.status(400).json({ error: 'Event date must be in the future' });
+            return res.status(403).json({ error: 'You do not have permission to create an event' });
         }
 
-        if (capacity <= 0) {
-            return res.status(400).json({ error: 'Capacity must be greater than 0' });
-        }
+        const event = new Event({
+            name,
+            date,
+            hour,
+            location,
+            description,
+            price,
+            image,
+            capacity,
+            createdBy: user._id
+        });
 
-        if (price < 0) {
-            return res.status(400).json({ error: 'Price must be greater than or equal to 0' });
-        }
-
-        let imageUrls = [];
-        if (req.files) {
-            for (let file of req.files) {
-                const media = new Media({
-                    title: file.originalname,
-                    url: file.path,
-                    type: 'image'
-                });
-                await media.save();
-                imageUrls.push(media._id);
-            }
-        }
-
-        const event = new Event({ name, date, location, description, price, ticketType, images: imageUrls, tags, capacity });
         await event.save();
         res.status(201).json(event);
     } catch (error) {
