@@ -1,4 +1,3 @@
-// client/app/home/profile/index.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -13,18 +12,19 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useUser } from "@/hooks/useUser";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import RoleIndicator from "@/components/RoleIndicator";
 import MainPageContainer from "@/components/MainPageContainer";
 import { pickImageFromGallery } from "@/utils/imageUpload";
+import { updateUser } from "@/services/api";
 
 export default function ProfileScreen() {
   // Hooks
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { user, loading, error, updateProfile, logout } = useUser();
-  
+
   // State
+  const [user, setUser] = useState<any>(null);
   const [name, setName] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
@@ -35,29 +35,39 @@ export default function ProfileScreen() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   const isMobile = width < 768;
-  const defaultImage = { uri: "https://ui-avatars.com/api/?name="+user?.name+user?.lastname };
 
+  // Load user data from AsyncStorage
   useEffect(() => {
-    if (user) {
-      setName(user.name || "");
-      setLastname(user.lastname || "");
-      setEmail(user.email || "");
-      setPhone(user.phone || "");
-      setProfileImage(user.profileImage || undefined);
-    }
-  }, [user]);
+    const loadUserData = async () => {
+      try {
+        const userData = await AsyncStorage.getItem("user");
+
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          // Set initial values for form fields
+          setName(parsedUser.firstName || "");
+          setLastname(parsedUser.lastName || "");
+          setEmail(parsedUser.email || "");
+          setPhone(parsedUser.phoneNumber || "");
+          setProfileImage(parsedUser.profileImage || undefined);
+        } else {
+          // Redirigir si no hay datos de usuario
+          router.push('/auth/login');
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      }
+    };
+    loadUserData();
+  }, [router]);
+
+  const defaultImage = { uri: "https://ui-avatars.com/api/?name=" + name + " " + lastname };
 
   // Event handlers
   const handleBack = () => router.back();
 
   const handleEditToggle = () => {
-    if (isEditing && user) {
-      setName(user.name || "");
-      setLastname(user.lastname || "");
-      setEmail(user.email || "");
-      setPhone(user.phone || "");
-      setProfileImage(user.profileImage || undefined);
-    }
     setIsEditing(!isEditing);
   };
 
@@ -78,16 +88,16 @@ export default function ProfileScreen() {
       Alert.alert("Error", "Por favor complete todos los campos requeridos");
       return;
     }
-
+  
     setIsSaving(true);
     
     try {
-      const success = await updateProfile({
-        name,
-        lastname,
+      const userId = user._id; 
+      const success = await updateUser(userId, {
+        firstName: name,
+        lastName: lastname,
         email,
-        phone,
-        profileImage
+        phoneNumber: phone,
       });
       
       if (success) {
@@ -105,7 +115,13 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    const success = await logout();
+   
+    // Remove user data from AsyncStorage
+    await AsyncStorage.removeItem("user");
+    await AsyncStorage.removeItem("token");
+
+    const success = true; 
+
     if (success) {
       router.replace("/");
     } else {
@@ -184,51 +200,47 @@ export default function ProfileScreen() {
     </View>
   );
 
-  const renderEditingActions = () => (
-    <View>
-      <TouchableOpacity 
-        style={[styles.actionButton, styles.saveButton]} 
-        onPress={handleSave}
-        disabled={isSaving || isUploadingImage}
-      >
-        {isSaving ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.saveButtonText}>Guardar</Text>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={[styles.actionButton, styles.cancelButton]} 
-        onPress={handleEditToggle}
-        disabled={isSaving || isUploadingImage}
-      >
-        <Text style={styles.cancelButtonText}>Cancelar</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderViewingActions = () => (
-    <>
-      <TouchableOpacity 
-        style={[styles.actionButton, styles.editButton]} 
-        onPress={handleEditToggle}
-      >
-        <Text style={styles.editButtonText}>Editar Perfil</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={[styles.actionButton, styles.changePasswordButton]} 
-        onPress={handleChangePassword}
-      >
-        <Text style={styles.changePasswordButtonText}>Cambiar Contraseña</Text>
-      </TouchableOpacity>
-    </>
-  );
-
   const renderActions = () => (
     <View style={styles.actionsContainer}>
-      {isEditing ? renderEditingActions() : renderViewingActions()}
+      {isEditing ? (
+        <>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.saveButton]} 
+            onPress={handleSave}
+            disabled={isSaving || isUploadingImage}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>Guardar</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.cancelButton]} 
+            onPress={handleEditToggle}
+            disabled={isSaving || isUploadingImage}
+          >
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.editButton]} 
+            onPress={handleEditToggle}
+          >
+            <Text style={styles.editButtonText}>Editar Perfil</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.changePasswordButton]} 
+            onPress={handleChangePassword}
+          >
+            <Text style={styles.changePasswordButtonText}>Cambiar Contraseña</Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       <TouchableOpacity 
         style={[styles.actionButton, styles.logoutButton]} 
@@ -239,27 +251,13 @@ export default function ProfileScreen() {
     </View>
   );
 
-  // Loading state
-  if (loading && !user) {
+  // Si el usuario es nulo, muestra un indicador de carga
+  if (user === null) {
     return (
       <MainPageContainer showNavbar={false} showFooter={false}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#D9D9D9" />
           <Text style={styles.loadingText}>Cargando Perfil...</Text>
-        </View>
-      </MainPageContainer>
-    );
-  }
-
-  // Error state
-  if (error && !user) {
-    return (
-      <MainPageContainer showNavbar={false} showFooter={false}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Error al cargar el perfil</Text>
-          <TouchableOpacity style={styles.errorButton} onPress={handleBack}>
-            <Text style={styles.errorButtonText}>Regresar</Text>
-          </TouchableOpacity>
         </View>
       </MainPageContainer>
     );
@@ -456,28 +454,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: '#6c757d',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#dc3545',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  errorButton: {
-    backgroundColor: '#D9D9D9',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  errorButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#212529',
   },
 });

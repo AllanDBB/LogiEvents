@@ -99,7 +99,7 @@ const VerifyAuthScreen = () => {
       if (response.status !== 200) {
         throw new Error(response.data?.message || 'Error al verificar el código');
       }
-      router.push('/home');
+      router.push('/auth/login')
     } catch (error) {
       shake();
       alert(error.message);

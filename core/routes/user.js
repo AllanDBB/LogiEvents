@@ -129,14 +129,13 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 
-// Update user information
+// Update user information given an email
 router.patch('/:id', requireAuth, async (req, res) => {
-
     try {
         const user = await User.findById(req.params.id);
 
-        if (!user){
-            throw new Error('User not found');
+        if (!user) {
+            throw new Error('User  not found');
         }
 
         const check = ['firstName', 'lastName', 'email', 'phoneNumber'];
@@ -152,11 +151,11 @@ router.patch('/:id', requireAuth, async (req, res) => {
         await user.save();
 
         res.status(200).json(user);
-    }
-    catch (error) {
+    } catch (error) {
         res.status(400).send(error.message);
     }
 });
+
 
 // Delete user
 router.delete('/:id', requireAuth, async (req, res) => {

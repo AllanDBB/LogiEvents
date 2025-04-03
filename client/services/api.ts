@@ -63,5 +63,14 @@ export const login = async (data) => {
   }
 }
 
+export const updateUser  = async (id, data) => {
+  try {
+    const response = await api.patch(`/user/${id}`, data); 
+    return response.data; 
+  } catch (error) {
+    console.error('Error actualizando el usuario:', error);
+    throw error;
+  }
+}
 
 export default api;
