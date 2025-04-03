@@ -11,6 +11,7 @@ export default function HomeLayout() {
         <Stack.Screen name="profile" options={{ title: "Profile" }} />
         <Stack.Screen name="events/myEvents" options={{ title: "My Events" }} />
         <Stack.Screen name="events/editEvent/[eventId]" options={{ title: "Edit Event" }} />
+        <Stack.Screen name="events/detailsEvent/[eventId]" options={{ title: "Edit Event" }} />
         <Stack.Screen name="events/createEvent" options={{ title: "Create Event" }} />
       </Stack>
     </View>

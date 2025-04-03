@@ -72,7 +72,7 @@ export default function MyEventsScreen() {
       router.push(`/home/events/editEvent/${event.id}`);
       console.log(user?.role);
     }  else {
-      router.push(`/home/events/${event.id}`);
+      router.push(`/home/events/detailsEvent/${event.id}`);
     }
   };
 
