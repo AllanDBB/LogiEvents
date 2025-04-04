@@ -5,7 +5,6 @@ const Event = require('../models/event');
 const User = require('../models/user');
 const Media = require('../models/media');
 const upload = require('../middlewares/multer');
-const cloudinary = require('cloudinary').v2;
 const bcryptjs = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
@@ -17,33 +16,15 @@ const OTP = require('../models/otp');
 const { sendAdminCode, sendVerificationCode } = require('../services/smsService');
 const { sendEmail } = require('../services/emailService');
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
 
-router.post('/', requireAuth, upload.single('eventCover'), async (req, res) => {
+router.post('/', requireAuth,  async (req, res) => {
     try {
-        const { name, date, hour, location, description, price, capacity, category } = req.body;
+        const { name, date, hour, location, description, price, capacity, category, img } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ error: 'User not found' });
 
         if (user.role !== 'admin') return res.status(403).json({ error: 'You do not have permission to create an event' });
-
-        if (!req.file) return res.status(400).json({ error: 'Event cover image is required' });
-
-        const uploadedImage = await cloudinary.uploader.upload(req.file.path);
-        console.log("✅ Imagen subida a Cloudinary:", uploadedImage.url);
-
-        const media = new Media({
-            title: name,
-            description: description || 'Event cover image',
-            url: uploadedImage.secure_url, 
-            type: 'image'
-        });
-        await media.save();
 
         const dateParts = date.split('/');
         const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
@@ -61,7 +42,7 @@ router.post('/', requireAuth, upload.single('eventCover'), async (req, res) => {
             category,
             status: 'activo',
             createdBy: user._id,
-            image: media._id
+            image: img
         });
 
         const savedEvent = await event.save();
@@ -73,8 +54,6 @@ router.post('/', requireAuth, upload.single('eventCover'), async (req, res) => {
         res.status(400).json({ error: error.message, full: error });
     }
 });
-
-module.exports = router;
 
 
 // Get all events
