@@ -189,4 +189,40 @@ export const confirmEventDeletion = async (id, code, token) => {
   }
 };
 
+export const requestReservation = async (eventId, phoneNumber, quantity, token) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/event/${eventId}/reserve`,
+      { phoneNumber, quantity },
+      {
+        headers: {
+          Authorization: token,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.error || 'Error al solicitar la reserva';
+  }
+};
+
+export const confirmReservation = async (eventId, data, token) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/event/${eventId}/confirm-reservation`,
+      data,
+      {
+        headers: {
+          Authorization: token,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.error || 'Error al confirmar la reserva';
+  }
+};
+
 export default api;

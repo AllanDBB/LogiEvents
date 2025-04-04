@@ -9,6 +9,7 @@ import type { Event, EventCategory } from '@/models/event';
 export function useEvents(initialCategory?: EventCategory) {
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [userEvents, setUserEvents] = useState<Event[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | undefined>(initialCategory);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -24,9 +25,9 @@ export function useEvents(initialCategory?: EventCategory) {
       setEvents(data);
       
       if (selectedCategory) {
-        setFilteredEvents(data.filter((event) => event.category === selectedCategory));
+        setUserEvents(data.filter((event) => event.category === selectedCategory));
       } else {
-        setFilteredEvents(data);
+        setUserEvents(data);
       }
     } catch (err) {
       setError('Error al cargar eventos');
@@ -168,6 +169,7 @@ export function useEvents(initialCategory?: EventCategory) {
   return {
     events,
     filteredEvents,
+    userEvents,
     loading,
     error,
     selectedCategory,

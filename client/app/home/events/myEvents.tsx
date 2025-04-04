@@ -35,12 +35,13 @@ export default function MyEventsScreen() {
     searchQuery,
     setSearchQuery,
     searchEvents,
-    loadAvailableEvents
+    loadAvailableEvents,
+    loadUserEvents
   } = useEvents();
 
   useEffect(() => {
-    loadAvailableEvents();
-  }, [loadAvailableEvents]);
+    loadUserEvents();
+  }, [loadUserEvents]);
 
   // Responsive layout setup with improved web detection
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function MyEventsScreen() {
       router.push(`/home/events/editEvent/${event.id}`);
       console.log(user?.role);
     }  else {
-      router.push(`/home/events/detailsEvent/${event.id}`);
+      router.push(`/home/events/detailsEvent/${event._id}`);
     }
   };
 
@@ -130,7 +131,7 @@ export default function MyEventsScreen() {
         {isMobile ? (
           <View style={styles.headerMobile}>
             <ProfileCard
-              name={user ? `${user.name} ${user.lastname}`.toUpperCase() : ""}
+              name={user ? `${user.firstName} ${user.lastname}`.toUpperCase() : ""}
               role={user ? user.role : ""}
               avatar={user?.profileImage}
               profileStyles={profileStyles}
@@ -147,7 +148,7 @@ export default function MyEventsScreen() {
         ) : (
           <View style={styles.headerDesktop}>
             <ProfileCard
-              name={user ? `${user.name} ${user.lastname}`.toUpperCase() : ""}
+              name={user ? `${user.firstName} ${user.lastName}`.toUpperCase() : ""}
               role={user ? user.role : ""}
               avatar={user?.profileImage}
               profileStyles={profileStyles}
