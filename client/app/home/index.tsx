@@ -113,7 +113,7 @@ function HomeScreen() {
   }, [getCategories]);
 
   const handleEventPress = (event: Event) => {
-    router.push(`/home/events/${event.id}`);
+    router.push(`/home/events/editEvent/${event._id}`);
   };
 
   const handleCreateEvent = () => {

@@ -2,7 +2,7 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'https://core-swart-six.vercel.app';
+const API_URL = 'http://localhost:3000';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -130,20 +130,63 @@ export const createEvent = async (data, token) => {
   }
 };
 
-export const getAllEventsCreatedByUser  = async (userId, token) => {
+export const getEventById = async (id, token) => {
   try {
+      const response = await api.get(`/event/${id}`, {
+          headers: {
+              Authorization: `${token}`
+          },
+      });
+      return response.data;
+  } catch (error) {
+      console.error('Error al obtener el evento:', error);
+      throw error;
+  }
+}
 
-    const response = await api.get(`/event/user/${userId}`, {
+export const updateEvent = async (id, data, token) => {
+  try {
+      const response = await api.put(`/event/${id}`, data, {
+          headers: {
+              Authorization: `${token}`
+          },
+      });
+      return response.data;
+  } catch (error) {
+      console.error('Error al actualizar el evento:', error);
+      throw error;
+  }
+}
+
+export const requestEventDeletion = async (id, token) => {
+  try {
+    const response = await api.delete(`/event/${id}`, {
       headers: {
-        Authorization: `${token}`, 
+        Authorization: `${token}`
       },
     });
     return response.data;
   } catch (error) {
-    console.error('Error al obtener eventos creados por el usuario:', error);
+    console.error('Error al solicitar la eliminación del evento:', error);
     throw error;
   }
-}
+};
 
+export const confirmEventDeletion = async (id, code, token) => {
+  try {
+    const response = await api.post(`/event/${id}/confirm-delete`, 
+      { code },
+      {
+        headers: {
+          Authorization: `${token}`
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error al confirmar la eliminación del evento:', error);
+    throw error;
+  }
+};
 
 export default api;

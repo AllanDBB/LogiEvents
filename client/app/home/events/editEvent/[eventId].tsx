@@ -1,64 +1,155 @@
 import MainPageContainer from '@/components/MainPageContainer';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, Platform, ActivityIndicator, Modal } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import { RelativePathString, useRouter } from "expo-router";
-import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getEventById, updateEvent, requestEventDeletion, confirmEventDeletion } from '@/services/api';
 
+// Componente de pop-up personalizado
+const CustomPopup = ({ visible, title, message, buttons, onClose }) => {
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.popupContainer}>
+          <Text style={styles.popupTitle}>{title}</Text>
+          <Text style={styles.popupMessage}>{message}</Text>
+          <View style={styles.popupButtonContainer}>
+            {buttons.map((button, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.popupButton,
+                  button.style === 'cancel' && styles.cancelButton,
+                  button.style === 'destructive' && styles.confirmButton,
+                  button.style === 'success' && styles.successButton
+                ]}
+                onPress={() => {
+                  onClose();
+                  if (button.onPress) button.onPress();
+                }}
+              >
+                <Text style={styles.popupButtonText}>{button.text}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 const EditEvent = () => {
-  let oldData = {
-    title: "Fiesta",
-    description: "Gran fiesta en la playa con musica en vivo y juegos",
-    image: "https://www.kasandbox.org/programming-images/avatars/leaf-red.png",
-    category: "Ocio",
-    date: "23/01/2026",
-    time: "08:00",
-    location: "Liberia, Guanacaste",
-    availableSpots: 4, 
-    admin: "Starticket",
-    capacity: 300,
-    price: 7,
-  };
-
-  const [location, setLocation] = useState(oldData.location);
-  const [capacity, setCapacity] = useState(oldData.capacity.toString());
-  const [price, setPrice] = useState(oldData.price.toString());
-  const [date, setDate] = useState(oldData.date.replace(/\//g, ''));
-  const [formattedDate, setFormattedDate] = useState(oldData.date);
-  const [time, setTime] = useState(oldData.time);
-  const [image, setImage] = useState(oldData.image);
-  const [description, setDescription] = useState(oldData.description);
+  const { eventId } = useLocalSearchParams();
+  const router = useRouter();
   
-  // Estados de error solo para campos editables
+  // Estados para los datos del evento
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Estados para los campos editables
+  const [location, setLocation] = useState('');
+  const [capacity, setCapacity] = useState('');
+  const [price, setPrice] = useState('');
+  const [date, setDate] = useState('');
+  const [formattedDate, setFormattedDate] = useState('');
+  const [time, setTime] = useState('');
+  const [image, setImage] = useState(''); 
+  const [description, setDescription] = useState('');
+  
+  // Estados de error para campos editables
   const [dateError, setDateError] = useState('');
   const [locationError, setLocationError] = useState('');
   const [capacityError, setCapacityError] = useState('');
   const [priceError, setPriceError] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
+  
+  // Estados para los popups
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupConfig, setPopupConfig] = useState({
+    title: '',
+    message: '',
+    buttons: []
+  });
+  
+  // Estados para la confirmación OTP
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
 
-
-  const pickImage = async () => {
-    // Solicitar permisos
-    if (Platform.OS !== 'web') {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Se necesitan permisos para acceder a la galería de fotos.');
-        return;
-      }
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
+  // Función para mostrar un popup
+  const showCustomPopup = (title, message, buttons) => {
+    setPopupConfig({
+      title,
+      message,
+      buttons
     });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
+    setShowPopup(true);
   };
+
+  // Cargar datos del evento desde la API
+  useEffect(() => {
+    const fetchEventData = async () => {
+      try {
+        setLoading(true);
+        const token = await AsyncStorage.getItem('token');
+        
+        if (!token) {
+          showCustomPopup(
+            'Error', 
+            'No se encontró un token de autenticación', 
+            [{ text: 'OK', onPress: () => router.push('/auth/login') }]
+          );
+          return;
+        }
+        
+        const eventData = await getEventById(eventId, token);
+        setEvent(eventData);
+        
+        // Inicializar los estados con los datos del evento
+        setLocation(eventData.location || '');
+        setCapacity(eventData.capacity?.toString() || '');
+        setPrice(eventData.price?.toString() || '');
+        
+        // Formatear la fecha si es necesario
+        if (eventData.date) {
+          let dateStr = eventData.date;
+          if (typeof dateStr === 'string' && dateStr.includes('/')) {
+            setFormattedDate(dateStr);
+            // Extraer solo los números de la fecha formateada
+            setDate(dateStr.replace(/\//g, ''));
+          } else if (dateStr instanceof Date) {
+            const day = String(dateStr.getDate()).padStart(2, '0');
+            const month = String(dateStr.getMonth() + 1).padStart(2, '0');
+            const year = dateStr.getFullYear();
+            const formatted = `${day}/${month}/${year}`;
+            setFormattedDate(formatted);
+            setDate(`${day}${month}${year}`);
+          }
+        }
+        
+        setTime(eventData.hour || eventData.time || '');
+        setImage(eventData.image || eventData.eventCover || ''); // Solo para mostrar
+        setDescription(eventData.description || '');
+      } catch (error) {
+        console.error('Error al obtener los datos del evento:', error);
+        setError('No se pudo cargar el evento. Inténtalo de nuevo más tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (eventId) {
+      fetchEventData();
+    }
+  }, [eventId, router]);
 
   useEffect(() => {
     if (date.length === 8 && !date.includes('/')) {
@@ -69,38 +160,38 @@ const EditEvent = () => {
     }
   }, [date]);
 
-  const router = useRouter();
-
-  const handleCreateEvent = () => {
+  const handleSaveEvent = async () => {
     let hasErrors = false;
-
+  
+    // Validaciones
     if (!location.trim()) {
       setLocationError('Por favor ingresa una ubicación');
       hasErrors = true;
     } else {
       setLocationError('');
     }
-
+  
     if (!date || dateError) {
       setDateError(dateError || 'Por favor ingresa una fecha válida');
       hasErrors = true;
     } else {
       setDateError('');
     }
-
+  
     if (!capacity.trim()) {
       setCapacityError('Por favor ingresa la capacidad');
       hasErrors = true;
     } else if (parseInt(capacity) <= 0) {
       setCapacityError('Capacidad inválida');
       hasErrors = true;
-    } else if (parseInt(capacity) < (oldData.capacity-oldData.availableSpots)){
-      setCapacityError(`La capacidad actualizada debe ser mayor a las reservas actuales. Reservas actuales: ${oldData.capacity - oldData.availableSpots}`);
+    } else if (event && event.availableSpots !== undefined && 
+              parseInt(capacity) < (event.capacity - event.availableSpots)) {
+      setCapacityError(`La capacidad actualizada debe ser mayor a las reservas actuales. Reservas actuales: ${event.capacity - event.availableSpots}`);
       hasErrors = true;
     } else {
       setCapacityError('');
     }
-
+  
     if (!price.trim()) {
       setPriceError('Por favor ingresa un precio');
       hasErrors = true;
@@ -110,45 +201,168 @@ const EditEvent = () => {
     } else {
       setPriceError('');
     }
-
+  
     if (!description.trim()) {
       setDescriptionError('Por favor ingresa una descripción');
       hasErrors = true;
     } else {
       setDescriptionError('');
     }
-
+  
     if (hasErrors) {
       return;
     }
   
-    const eventData = {
-      eventName: oldData.title, 
-      location,
-      category: oldData.category,
-      capacity: parseInt(capacity),
-      price: parseFloat(price),
-      date: formattedDate,
-      time: time || oldData.time,
-      image,
-      description
-    };
-    
-    console.log('Datos del evento:', eventData);
-
-    router.push("/home/events/myEvents");
-    
-    return eventData;
+    // Mostrar indicador de carga
+    setLoading(true);
+  
+    try {
+      // Obtener token de autenticación
+      const token = await AsyncStorage.getItem('token');
+      
+      if (!token) {
+        showCustomPopup(
+          'Error', 
+          'No se encontró un token de autenticación', 
+          [{ text: 'OK', onPress: () => router.push('/auth/login') }]
+        );
+        return;
+      }
+      
+      // Preparar datos del evento - omitiendo la imagen
+      const eventData = {
+        name: event?.name || event?.title, 
+        location,
+        category: event?.category,
+        capacity: parseInt(capacity),
+        price: parseFloat(price),
+        date: formattedDate,
+        hour: time || event?.time || event?.hour,
+        description
+      };
+      
+      console.log('Actualizando evento con datos:', eventData);
+      
+      // Llamar a la API para actualizar el evento
+      await updateEvent(eventId, eventData, token);
+      
+      showCustomPopup(
+        'Éxito', 
+        'Evento actualizado correctamente', 
+        [{ text: 'OK', style: 'success', onPress: () => router.push("/home") }]
+      );
+    } catch (error) {
+      console.error('Error al actualizar el evento:', error);
+      showCustomPopup(
+        'Error', 
+        'No se pudo actualizar el evento. Inténtalo de nuevo más tarde.', 
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRemoveEvent = () => {
+    showCustomPopup(
+      'Confirmar eliminación',
+      '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: requestDeletion }
+      ]
+    );
+  };
 
-    // asumo que algo debe de pasar aca pero no se 
-    router.push("/home/events/myEvents");
+  const requestDeletion = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('token');
+      
+      if (!token) {
+        showCustomPopup(
+          'Error', 
+          'No se encontró un token de autenticación', 
+          [{ text: 'OK', onPress: () => router.push('/auth/login') }]
+        );
+        return;
+      }
+      
+      // Solicitar el código OTP para eliminar el evento
+      const response = await requestEventDeletion(eventId, token);
+      
+      // Mostrar el modal para ingresar el código OTP
+      setShowOtpModal(true);
+      
+      showCustomPopup(
+        'Código de verificación enviado',
+        'Hemos enviado un código de verificación a tu teléfono y correo electrónico. Por favor, ingrésalo para confirmar la eliminación del evento.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Error al solicitar la eliminación del evento:', error);
+      showCustomPopup(
+        'Error', 
+        'No se pudo solicitar la eliminación del evento. Inténtalo de nuevo más tarde.', 
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmDeletion = async () => {
+    if (!otpCode.trim()) {
+      setOtpError('Por favor ingresa el código de verificación');
+      return;
+    }
+    
+    if (otpCode.length !== 6 || !/^\d+$/.test(otpCode)) {
+      setOtpError('El código debe tener 6 dígitos');
+      return;
+    }
+    
+    setOtpError('');
+    setConfirmingDeletion(true);
+    
+    try {
+      const token = await AsyncStorage.getItem('token');
+      
+      if (!token) {
+        showCustomPopup(
+          'Error', 
+          'No se encontró un token de autenticación', 
+          [{ text: 'OK', onPress: () => router.push('/auth/login') }]
+        );
+        return;
+      }
+      
+      // Confirmar la eliminación con el código OTP
+      await confirmEventDeletion(eventId, otpCode, token);
+      
+      setShowOtpModal(false);
+      setOtpCode('');
+      
+      showCustomPopup(
+        'Éxito', 
+        'Evento eliminado correctamente', 
+        [{ text: 'OK', style: 'success', onPress: () => router.push("/home") }]
+      );
+    } catch (error) {
+      console.error('Error al confirmar la eliminación del evento:', error);
+      setOtpError('Código inválido o expirado. Inténtalo de nuevo.');
+    } finally {
+      setConfirmingDeletion(false);
+    }
+  };
+
+  const handleCancelDeletion = () => {
+    setShowOtpModal(false);
+    setOtpCode('');
+    setOtpError('');
   };
 
   const handleDateChange = (text) => {
-    
     const numericValue = text.replace(/[^0-9]/g, '');
     const truncatedValue = numericValue.slice(0, 8);
     
@@ -232,35 +446,66 @@ const EditEvent = () => {
     }
   };
 
-
   const hours = Array.from({ length: 24 }, (_, i) => ({
     label: `${i}:00`,
     value: `${i}:00`,
   }));
 
+  // Renderizar pantalla de carga mientras se obtienen los datos
+  if (loading) {
+    return (
+      <MainPageContainer>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#5FAA9D" />
+          <Text style={styles.loadingText}>Cargando información del evento...</Text>
+        </View>
+      </MainPageContainer>
+    );
+  }
+
+  // Renderizar mensaje de error si ocurrió algún problema
+  if (error) {
+    return (
+      <MainPageContainer>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.createButton} onPress={() => router.back()}>
+            <Text style={styles.createButtonText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </MainPageContainer>
+    );
+  }
+
   return (
     <MainPageContainer>
+      {/* Pop-up personalizado */}
+      <CustomPopup
+        visible={showPopup}
+        title={popupConfig.title}
+        message={popupConfig.message}
+        buttons={popupConfig.buttons}
+        onClose={() => setShowPopup(false)}
+      />
+      
       <ScrollView style={styles.container}>
         <View style={styles.eventContainer}>
-        <TouchableOpacity 
-            style={styles.imagePlaceholder}
-            onPress={pickImage}
-          >
+          {/* Área de imagen - ahora solo para mostrar, no para editar */}
+          <View style={styles.imagePlaceholder}>
             {image ? (
               <Image source={{ uri: image }} style={styles.image} />
             ) : (
               <View style={styles.placeholderContent}>
-                <Text style={styles.placeholderText}>+</Text>
-                <Text style={styles.placeholderSubText}>Agregar imagen</Text>
+                <Text style={styles.placeholderSubText}>Sin imagen</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
 
           <View style={styles.detailsContainer}>
             <Text style={styles.adminText}>Editar evento</Text>
 
             {/* Nombre del evento - no editable */}
-            <Text style={styles.eventTitle}>{oldData.title}</Text>
+            <Text style={styles.eventTitle}>{event?.name || event?.title}</Text>
         
             <View style={styles.infoContainer}>
               <View style={styles.infoColumn}>
@@ -271,14 +516,14 @@ const EditEvent = () => {
                     value={location}
                     onChangeText={handleLocationChange}
                     editable={true}
+                    placeholder="Ubicación"
                   />
                 </View>
-                
                 
                 {/* Categoría - no editable */}
                 <View style={styles.categorySpace}>
                   <Text style={styles.pickerIcon}>🏷️</Text>
-                  <Text style={styles.infoInput}>{oldData.category}</Text>
+                  <Text style={styles.infoInput}>{event?.category}</Text>
                 </View>
               </View>
 
@@ -292,16 +537,16 @@ const EditEvent = () => {
                     keyboardType="number-pad"
                     maxLength={10}
                     editable={true}
+                    placeholder="DD/MM/AAAA"
                   />
                 </View>
-                
                 
                 <View style={styles.pickerWrapper}>
                   <Text style={styles.pickerIcon}>⏰</Text>
                   <RNPickerSelect
                     onValueChange={(value) => setTime(value)}
                     items={hours}
-                    placeholder={{ label: oldData.time, value: null }}
+                    placeholder={{ label: time || "Seleccionar hora", value: null }}
                     style={pickerSelectStyles}
                     value={time}
                   />
@@ -318,9 +563,9 @@ const EditEvent = () => {
                   onChangeText={handleCapacityChange}
                   keyboardType="number-pad"
                   editable={true}
+                  placeholder="Capacidad"
                 />
               </View>
-              
               
               <View style={styles.inputWithIcon}>
                 <Text style={styles.inputIcon}>$</Text>
@@ -330,9 +575,9 @@ const EditEvent = () => {
                   onChangeText={handlePriceChange}
                   editable={true}
                   keyboardType="decimal-pad"
+                  placeholder="Precio"
                 />
               </View>
-              
             </View>
 
             <TextInput
@@ -344,8 +589,8 @@ const EditEvent = () => {
               }}
               multiline={true}
               editable={true}
+              placeholder="Descripción del evento..."
             />
-            
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity 
@@ -353,7 +598,7 @@ const EditEvent = () => {
                   styles.createButton, 
                   (dateError || locationError || capacityError || priceError || descriptionError) && styles.disabledButton
                 ]}
-                onPress={handleCreateEvent}
+                onPress={handleSaveEvent}
                 disabled={
                   !!dateError || !!locationError || !!capacityError || !!priceError || !!descriptionError
                 }
@@ -361,32 +606,89 @@ const EditEvent = () => {
                 <Text style={styles.createButtonText}>Guardar cambios</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.createButton}
-              onPress={handleRemoveEvent}>
+              <TouchableOpacity 
+                style={[styles.createButton, styles.deleteButton]}
+                onPress={handleRemoveEvent}
+              >
                 <Text style={styles.createButtonText}>Eliminar evento</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.errorContainer}>
-
+            
+            <View style={styles.errorMessagesContainer}>
               {locationError ? <Text style={styles.errorText}>{locationError}</Text> : null}
               {dateError ? <Text style={styles.errorText}>{dateError}</Text> : null}
               {capacityError ? <Text style={styles.errorText}>{capacityError}</Text> : null}
               {priceError ? <Text style={styles.errorText}>{priceError}</Text> : null}
               {descriptionError ? <Text style={styles.errorText}>{descriptionError}</Text> : null}
-
             </View>
-            
-
-
-
           </View>
         </View>
       </ScrollView>
+
+      {/* Modal para ingresar código OTP */}
+      <Modal
+        visible={showOtpModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelDeletion}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Verificación de seguridad</Text>
+            <Text style={styles.modalDescription}>
+              Ingresa el código de 6 dígitos que enviamos a tu teléfono y correo electrónico para confirmar la eliminación del evento.
+            </Text>
+
+            <View style={styles.inputWithIcon}>
+              <Text style={styles.inputIcon}>🔐</Text>
+              <TextInput
+                style={styles.otpInput}
+                value={otpCode}
+                onChangeText={(text) => {
+                  setOtpCode(text);
+                  if (text) setOtpError('');
+                }}
+                keyboardType="number-pad"
+                maxLength={6}
+                placeholder="Código de verificación"
+                editable={!confirmingDeletion}
+              />
+            </View>
+            
+            {otpError ? <Text style={styles.errorText}>{otpError}</Text> : null}
+
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={handleCancelDeletion}
+                disabled={confirmingDeletion}
+              >
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[
+                  styles.modalButton, 
+                  styles.confirmButton,
+                  confirmingDeletion && styles.disabledButton
+                ]}
+                onPress={handleConfirmDeletion}
+                disabled={confirmingDeletion}
+              >
+                {confirmingDeletion ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Confirmar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </MainPageContainer>
   );
 };
 
-// Estilos permanecen igual...
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 14,
@@ -414,10 +716,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorMessagesContainer: {
+    marginTop: 20,
+  },
   errorContainer: {
     flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    marginTop: 20,
   },
   eventContainer: {
     flexDirection: 'row',
@@ -464,9 +782,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#eee',
-    borderRadius:5,
+    borderRadius: 5,
   },
-  categorySpace:{
+  categorySpace: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
@@ -481,6 +799,7 @@ const styles = StyleSheet.create({
   inputIcon: {
     width: 25,
     fontSize: 16,
+    textAlign: 'center',
   },
   pickerIcon: {
     width: 25,
@@ -536,6 +855,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 10,
   },
+  deleteButton: {
+    backgroundColor: '#E74C3C',
+  },
   createButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -548,9 +870,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 12,
-    marginTop: -10,
     marginBottom: 10,
-    marginLeft: 25,
   },
   placeholderContent: {
     alignItems: 'center',
@@ -570,6 +890,113 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 10,
   },
+  
+  // Estilos para el modal OTP
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  otpInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: 10,
+    letterSpacing: 2,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalButton: {
+    paddingVertical: 12,
+    borderRadius: 5,
+    flex: 1,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  confirmButton: {
+    backgroundColor: '#E74C3C',
+  },
+  cancelButton: {
+    backgroundColor: '#999',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  
+  // Estilos para popup personalizado
+  popupContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  popupTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    textAlign: 'center',
+  },
+  popupMessage: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  popupButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  popupButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    minWidth: 80,
+    marginHorizontal: 5,
+    alignItems: 'center',
+    backgroundColor: '#5FAA9D',
+  },
+  popupButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  successButton: {
+    backgroundColor: '#5FAA9D',
+  }
 });
 
 export default EditEvent;

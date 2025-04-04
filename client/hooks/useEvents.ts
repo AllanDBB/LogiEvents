@@ -74,7 +74,7 @@ export function useEvents(initialCategory?: EventCategory) {
     // Filter events by query and category
     const filtered = events.filter(event => {
       const matchesQuery = 
-        event.title.toLowerCase().includes(query.toLowerCase()) ||
+        event.name.toLowerCase().includes(query.toLowerCase()) ||
         event.description.toLowerCase().includes(query.toLowerCase());
         
       if (selectedCategory) {

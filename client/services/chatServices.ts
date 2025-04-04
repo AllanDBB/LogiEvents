@@ -142,8 +142,8 @@ const chatService = {
       const suggestedEvent = await this.getSuggestedEvent(lowercaseMessage);
       eventSuggestion = {
         id: suggestedEvent.id,
-        title: suggestedEvent.title,
-        datetime: `${suggestedEvent.date || ''} - ${suggestedEvent.time || ''}`,
+        title: suggestedEvent.name,
+        datetime: `${suggestedEvent.date || ''} - ${suggestedEvent.hour || ''}`,
         imageUrl: suggestedEvent.image,
         location: suggestedEvent.location
       };
@@ -220,7 +220,7 @@ const chatService = {
     
     for (let event of allEvents) {
       const eventText = (
-        event.title.toLowerCase() + ' ' +
+        event.name.toLowerCase() + ' ' +
         event.description.toLowerCase() + ' ' +
         event.category.toLowerCase()
       );

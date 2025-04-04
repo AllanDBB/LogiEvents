@@ -37,7 +37,6 @@ const EventDetails = () => {
 
  
   const { eventId } = useLocalSearchParams();
-  console.log("No colapses nati", eventId);
 
   const handleReservation = () => {
     router.push(`/home/events/reservation/${eventId}`);

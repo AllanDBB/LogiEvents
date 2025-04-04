@@ -16,7 +16,7 @@ function EventCard({ event, onPress, compact = false }: EventCardProps) {
     }
   };
 
-  const defaultImage = { uri: "https://ui-avatars.com/api/?name="+event.title };
+  const defaultImage = { uri: "https://ui-avatars.com/api/?name="+event.name };
   
   const containerStyle = compact ? styles.compactContainer : styles.container;
   const contentStyle = compact ? styles.compactCardContent : styles.cardContent;
@@ -31,7 +31,7 @@ function EventCard({ event, onPress, compact = false }: EventCardProps) {
     >
       <View style={contentStyle}>
         
-        {(event.date || event.time) && (
+        {(event.date || event.hour) && (
           <View style={styles.dateTimeContainer}>
             {event.date && (
               <View style={styles.dateRow}>
@@ -39,10 +39,10 @@ function EventCard({ event, onPress, compact = false }: EventCardProps) {
                 <Text style={compact ? styles.compactDateText : styles.dateText}>{event.date}</Text>
               </View>
             )}
-            {event.time && (
+            {event.hour && (
               <View style={styles.timeRow}>
                 <Ionicons name="time-outline" size={compact ? 12 : 14} color="#6c757d" />
-                <Text style={compact ? styles.compactTimeText : styles.timeText}>{event.time}</Text>
+                <Text style={compact ? styles.compactTimeText : styles.timeText}>{event.hour}</Text>
               </View>
             )}
           </View>
@@ -56,7 +56,7 @@ function EventCard({ event, onPress, compact = false }: EventCardProps) {
         
         <View style={styles.infoContainer}>
           <Text style={titleStyle} numberOfLines={1}>
-            {event.title}
+            {event.name}
           </Text>
           
           {event.location && (
