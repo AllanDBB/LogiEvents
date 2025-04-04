@@ -61,7 +61,25 @@ router.post('/', requireAuth,  async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const events = await Event.find().populate('attendees', 'firstName lastName email phoneNumber role');
-        res.status(200).json(events);
+
+        // Format the date to dd/mm/yyyy
+        const formattedEvents = events.map(event => {
+            const eventObj = event.toObject();
+            
+            if (eventObj.date instanceof Date) {
+                const dateString = eventObj.date.toISOString().split('T')[0]; 
+                const dateParts = dateString.split('-');
+                eventObj.date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`; 
+            } else if (typeof eventObj.date === 'string' && eventObj.date.includes('-')) {
+                const dateParts = eventObj.date.split('-');
+                eventObj.date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+            }
+            
+            return eventObj;
+        });
+
+        res.status(200).json(formattedEvents);
+        
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -243,11 +261,13 @@ router.post('/:eventId/confirm-delete', requireAuth, async (req, res) => {
 
 
 // Reserve a ticket for an event
-router.post('/:eventId/reserve', async (req, res) => {
+router.post('/:eventId/reserve', requireAuth, async (req, res) => {
     try {
-        const { fullName, email, phoneNumber, quantity } = req.body;
+        const { phoneNumber, quantity } = req.body;
         const eventId = req.params.eventId;
-        
+
+        const user = await User.findById(req.user._id);
+
         const event = await Event.findById(eventId);
 
         if (!event) {
@@ -264,10 +284,9 @@ router.post('/:eventId/reserve', async (req, res) => {
         expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
         const newOTP = new OTP({
+            userId: req.user._id,
             code: OTPCode,
-            phoneNumber,
-            expiresAt,
-            used: false
+            expiresAt
         });
 
         await newOTP.save();
@@ -275,35 +294,48 @@ router.post('/:eventId/reserve', async (req, res) => {
 
         res.status(200).json({ message: 'Verification code sent. Please confirm your reservation.' });
     } catch (error) {
+        console.error("❌ ERROR COMPLETO ===>", error);
         res.status(400).json({ error: error.message });
     }
 });
 
 // Confirm reservation
-router.post('/:eventId/confirm-reservation', async (req, res) => {
+router.post('/:eventId/confirm-reservation', requireAuth, async (req, res) => {
     try {
         const { phoneNumber, code, fullName, email, quantity } = req.body;
         const eventId = req.params.eventId;
+
+        const user = await User.findById(req.user._id);
 
         const event = await Event.findById(eventId);
         if (!event) {
             return res.status(404).json({ error: 'Event not found' });
         }
 
-        const otp = await OTP.findOne({ phoneNumber, code, used: false });
+        const otp = await OTP.findOne({ userId: user._id, code, used: false });
         if (!otp) {
-            return res.status(400).json({ error: 'Invalid verification code' });
+            return res.status(400).json({ error: 'Invalid OTP code' });
         }
-
+        
         otp.used = true;
         await otp.save();
 
-        for (let i = 0; i < quantity; i++) {
-            const ticket = new Ticket({ eventId, fullName, email, phoneNumber, ticketStatus: 'reserved' });
-            await ticket.save();
-        }
+        // create tickets
+        const ticket = new Ticket({
+            eventId: event._id,
+            userId: user._id,
+            ticketPrice: event.price,
+            ticketType: 'general',
+            ticketStatus: 'active',
+            ticketQuantity: quantity,
+        });
 
-        event.attendees.push(...Array(quantity).fill({ fullName, email, phoneNumber }));
+        await ticket.save();
+
+        event.attendees.push(user._id);
+
+        event.availableSpots -= quantity;
+
         await event.save();
 
         await sendEmail({
@@ -314,6 +346,7 @@ router.post('/:eventId/confirm-reservation', async (req, res) => {
 
         res.status(200).json({ message: 'Reservation confirmed' });
     } catch (error) {
+        console.error("❌ ERROR COMPLETO ===>", error);
         res.status(400).json({ error: error.message });
     }
 });

@@ -12,11 +12,9 @@ const USE_MOCK = true;
 const eventsService = {
   
   getAllEvents: async (): Promise<Event[]> => {
-    if (USE_MOCK) {
-      return Promise.resolve(allEvents);
-    }
-    
+
     const response = await api.get('/event');
+    console.log('Response from API:', response.data);
     return response.data;
   },
 

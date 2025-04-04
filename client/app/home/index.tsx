@@ -113,7 +113,12 @@ function HomeScreen() {
   }, [getCategories]);
 
   const handleEventPress = (event: Event) => {
-    router.push(`/home/events/editEvent/${event._id}`);
+
+    if (userRole === "admin") {
+      router.push(`/home/events/editEvent/${event._id}`);
+    } else {
+      router.push(`/home/events/${event._id}`);
+    }
   };
 
   const handleCreateEvent = () => {

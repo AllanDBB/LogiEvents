@@ -10,119 +10,58 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useEvents } from '@/hooks/useEvents';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getEventById } from '@/services/api';
 import MainPageContainer from '@/components/MainPageContainer';
 
-let tempData = {
-  title: "Fiesta",
-  description: "Gran fiesta en la playa con musica en vivo y juegos",
-  image: "https://www.kasandbox.org/programming-images/avatars/leaf-red.png",
-  category: "Ocio",
-  date: "23/01/2015",
-  time: "08:00",
-  location: "Liberia, Guanacaste",
-  availableSpots: 4, 
-  admin: "Starticket",
-  capacity: 300,
-  price: 7,
-  numSpace : 4
-};
-
-
 const EventDetails = () => {
-  const params = useLocalSearchParams();
-  const { event, loadEvent } = useEvents();
+  const { eventId } = useLocalSearchParams();
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const takenSpots = tempData.capacity-tempData.availableSpots;
-
- 
-  const { eventId } = useLocalSearchParams();
-
-  const handleReservation = () => {
-    router.push(`/home/events/reservation/${eventId}`);
-  };
-
-  /*
 
   useEffect(() => {
     const fetchData = async () => {
-      
       try {
         if (!eventId) {
           setError('No se recibió ID de evento');
           return;
         }
 
-        loadEvent(tempData);
-
-        // Verificar nuevamente después de cargar
-        const foundEvent = events.find(e => e.id?.toString() === eventId);
-        if (!foundEvent) {
-          setError(`Evento con ID ${eventId} no encontrado`);
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          setError('No se encontró un token de autenticación');
+          return;
         }
+
+        const eventData = await getEventById(eventId, token);
+        setEvent(eventData);
       } catch (err) {
-        //setError('Error al cargar el evento');
+        console.error('Error al cargar el evento:', err);
+        setError('Error al cargar el evento. Por favor, intenta de nuevo.');
       } finally {
         setLoading(false);
       }
-
-      }catch (err) {
-        //setError('Error al cargar el evento');
-      }
-      
-      
-      setLoading(false);
-    
     };
 
     fetchData();
   }, [eventId]);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-    */
+  const handleReservation = () => {
+    router.push(`/home/events/reservation/${eventId}`);
+  };
 
-  /*if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Ionicons name="warning-outline" size={48} color="#E74C3C" />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backButtonText}>Volver</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }*/
-
-  /*const event = events.find(e => e.id?.toString() === eventId);
-
-  if (!event) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text>El evento existe pero no se pudo cargar</Text>
-      </View>
-    );
-  }*/
+  const handleBack = () => {
+    router.back();
+  };
 
   const compareDates = (dateString, timeString) => {
+    if (!dateString || !timeString) return "";
     
     const [day, month, year] = dateString.split('/');
     const [hours, minutes] = timeString.split(':');
     
-    
-    
     const providedDate = new Date(year, month - 1, day, hours, minutes);
-    
-    
     const currentDate = new Date();
     
     if (currentDate > providedDate) {
@@ -134,10 +73,52 @@ const EventDetails = () => {
     }
   };
 
-  const handleBack = () => {
-    router.back();
-  };
+  if (loading) {
+    return (
+      <MainPageContainer>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E74C3C" />
+          <Text style={styles.loadingText}>Cargando detalles del evento...</Text>
+        </View>
+      </MainPageContainer>
+    );
+  }
 
+  if (error) {
+    return (
+      <MainPageContainer>
+        <View style={styles.errorContainer}>
+          <Ionicons name="warning-outline" size={48} color="#E74C3C" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.errorBackButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.errorBackButtonText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </MainPageContainer>
+    );
+  }
+
+  if (!event) {
+    return (
+      <MainPageContainer>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>No se encontró información del evento</Text>
+          <TouchableOpacity 
+            style={styles.errorBackButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.errorBackButtonText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </MainPageContainer>
+    );
+  }
+
+  const takenSpots = event.capacity - (event.availableSpots || 0);
+  const ticketsReserved = event.tickets?.length || 0;
 
   return (
     <MainPageContainer>
@@ -147,45 +128,59 @@ const EventDetails = () => {
       >
         <Ionicons name="chevron-back" size={28} color="#E74C3C" />
       </TouchableOpacity>
-    <ScrollView style={styles.container}>
-            <View style={styles.eventContainer}>
-            <Image 
-              source={{ uri: tempData.image }} 
-              style={styles.eventImage}
-            />
       
-              <View style={styles.detailsContainer}>
-                <Text style={styles.adminText}>{tempData.admin}</Text>
-                <Text style={styles.eventTitle}>{tempData.title}</Text>
-      
-                <View style={styles.infoContainer}>
-                  <View style={styles.infoColumn}>
-                    <Text style={styles.infoText}>📍 {tempData.location}</Text>
-                    <Text style={styles.infoText}>🏷️ {tempData.category}</Text>
-                  </View>
-                  <View style={styles.infoColumn}>
-                    <Text style={styles.infoText}>🗓️ {tempData.date}</Text>
-                    <Text style={styles.infoText}>⏰ {tempData.time}</Text>
-                    <Text style={styles.spacesTitle}>Cantidad de tickets</Text>
-                    <Text style={styles.spacesText}>{tempData.numSpace}</Text>
-
-                  </View>
-                </View>
-      
-                <Text style={styles.infoText}>👥 {takenSpots} / {tempData.capacity}</Text>
-      
-                <Text style={styles.description}>{tempData.description}</Text>
-
-                
-      
-                <Text style={styles.activeEvent}>{compareDates(tempData.date, tempData.time)}</Text>
-
-                
-              
+      <ScrollView style={styles.container}>
+        <View style={styles.eventContainer}>
+          <Image 
+            source={{ uri: event.image || 'https://www.kasandbox.org/programming-images/avatars/leaf-red.png' }} 
+            style={styles.eventImage}
+            resizeMode="cover"
+          />
+  
+          <View style={styles.detailsContainer}>
+            <Text style={styles.adminText}>{event.admin || 'Organizador'}</Text>
+            <Text style={styles.eventTitle}>{event.name || event.title}</Text>
+  
+            <View style={styles.infoContainer}>
+              <View style={styles.infoColumn}>
+                <Text style={styles.infoText}>📍 {event.location}</Text>
+                <Text style={styles.infoText}>🏷️ {event.category}</Text>
+              </View>
+              <View style={styles.infoColumn}>
+                <Text style={styles.infoText}>🗓️ {event.date}</Text>
+                <Text style={styles.infoText}>⏰ {event.hour || event.time}</Text>
+                {ticketsReserved > 0 && (
+                  <>
+                    <Text style={styles.spacesTitle}>Mis tickets</Text>
+                    <Text style={styles.spacesText}>{ticketsReserved}</Text>
+                  </>
+                )}
               </View>
             </View>
-          </ScrollView>
-          </MainPageContainer>
+  
+            <Text style={styles.infoText}>👥 {takenSpots} / {event.capacity}</Text>
+  
+            <Text style={styles.description}>{event.description}</Text>
+  
+            <Text style={styles.activeEvent}>
+              {compareDates(event.date, event.hour || event.time)}
+            </Text>
+  
+            {event.availableSpots > 0 && (
+              <TouchableOpacity 
+                style={styles.buyButton}
+                onPress={handleReservation}
+              >
+                <Text style={styles.buyButtonText}>¡Comprar ahora!</Text>
+                <Text style={styles.buyButtonPrice}>
+                  ${event.price || 0} + I.V.A
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    </MainPageContainer>
   );
 };
 
@@ -194,6 +189,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
   },
   errorContainer: {
     flex: 1,
@@ -206,6 +207,17 @@ const styles = StyleSheet.create({
     color: '#E74C3C',
     marginVertical: 10,
     textAlign: 'center',
+  },
+  errorBackButton: {
+    backgroundColor: '#E74C3C',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 15,
+  },
+  errorBackButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 24,
@@ -235,19 +247,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#555',
-    marginBottom:10,
+    marginBottom: 20,
   },
   spacesTitle: {
     fontSize: 15,
     fontWeight: 'bold',
     color: '#555',
-    marginBottom:1,
+    marginBottom: 1,
     marginTop: 10,
   },
   spacesText: {
     fontSize: 14,
     color: '#555',
-    marginBottom:1,
+    marginBottom: 1,
   },
   eventTitle: {
     fontSize: 27,
