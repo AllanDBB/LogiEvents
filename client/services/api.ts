@@ -2,7 +2,7 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://core-swart-six.vercel.app';
 
 const api = axios.create({
   baseURL: API_URL,

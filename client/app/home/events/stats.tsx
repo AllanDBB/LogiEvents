@@ -115,7 +115,7 @@ export default function StatsPage() {
         }
         
         // Obtener eventos del usuario
-        const response = await axios.get(`http://localhost:3000/event/${userId}`, {
+        const response = await axios.get(`https://core-swart-six.vercel.app/event/${userId}`, {
           headers: { Authorization: token }
         });
         
