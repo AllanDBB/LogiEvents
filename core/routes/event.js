@@ -1,65 +1,51 @@
 // Load modules
 const express = require('express');
-const bcryptjs = require('bcryptjs');
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-
 const passport = require('../middlewares/passport');
-const bodyHandler = require('../handlers/bodyHandler');
 const Event = require('../models/event');
 const User = require('../models/user');
-const Ticket = require('../models/ticket');
-const OTP = require('../models/otp');
 const Media = require('../models/media');
 const upload = require('../middlewares/multer');
+const cloudinary = require('cloudinary').v2;
 
 const router = express.Router();
-
 const requireAuth = passport.authenticate('jwt', { session: false });
-const { sendAdminCode, sendVerificationCode } = require('../services/smsService');
-const { sendEmail } = require('../services/emailService');
 
-// Create a new event
-router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => {
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
+router.post('/', requireAuth, upload.single('eventCover'), async (req, res) => {
     try {
         const { name, date, hour, location, description, price, capacity, category } = req.body;
-        
+
         const user = await User.findById(req.user._id);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
-        if (user.role !== 'admin') {
-            return res.status(403).json({ error: 'You do not have permission to create an event' });
-        }
+        if (user.role !== 'admin') return res.status(403).json({ error: 'You do not have permission to create an event' });
 
-        if (!req.file) {
-            return res.status(400).json({ error: 'Event cover image is required' });
-        }
+        if (!req.file) return res.status(400).json({ error: 'Event cover image is required' });
+
+        const uploadedImage = await cloudinary.uploader.upload(req.file.path);
+        console.log("✅ Imagen subida a Cloudinary:", uploadedImage.url);
 
         const media = new Media({
             title: name,
             description: description || 'Event cover image',
-            url: req.file.path,
+            url: uploadedImage.secure_url, 
             type: 'image'
         });
-
         await media.save();
 
         const dateParts = date.split('/');
         const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
         const dateObj = new Date(formattedDate);
-        if (isNaN(dateObj.getTime())) {
-            return res.status(400).json({ error: 'Invalid date format' });
-        }
-        const dateFix = dateObj.toISOString().split('T')[0];
-
-        console.log(dateFix);
+        if (isNaN(dateObj.getTime())) return res.status(400).json({ error: 'Invalid date format' });
 
         const event = new Event({
             name,
-            date: dateFix,
+            date: dateObj.toISOString().split('T')[0],
             hour,
             location,
             description,
@@ -70,21 +56,19 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
             createdBy: user._id,
             image: media._id
         });
-        
 
         const savedEvent = await event.save();
-        console.log('savedEvent', savedEvent);
-        await media.updateOne({ $push: { events: event._id } });
+        console.log('✅ Evento creado:', savedEvent);
 
-        res.status(201).json(event);
+        res.status(201).json(savedEvent);
     } catch (error) {
-        console.error("ERROR COMPLETO ===>", error);
+        console.error("❌ ERROR COMPLETO ===>", error);
         res.status(400).json({ error: error.message, full: error });
-
     }
 });
 
 module.exports = router;
+
 
 // Get all events
 router.get('/', async (req, res) => {
