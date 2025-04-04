@@ -5,6 +5,7 @@ import type { Event, EventCategory } from '@/models/event';
 import allEvents from '@/mockups/allEvents'; 
 import myEvents from '@/mockups/adminEvents'; 
 import  userService  from '@/services/userServices';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const USE_MOCK = true;
 
@@ -15,7 +16,7 @@ const eventsService = {
       return Promise.resolve(allEvents);
     }
     
-    const response = await api.get('/events');
+    const response = await api.get('/event');
     return response.data;
   },
 
@@ -26,20 +27,26 @@ const eventsService = {
       );
     }
     
-    const response = await api.get(`/events?category=${category}`);
+    const response = await api.get(`/event?category=${category}`);
     return response.data;
   },
 
   getUserEvents: async (): Promise<Event[]> => {
-    if (USE_MOCK) {
-      return Promise.resolve(myEvents);
-    }
-    
+  
     const user = await userService.getCurrentUser();
     if (!user) {  
       return [];
     }
-    const response = await api.get(`/events/user/${user.id}`);
+
+    const token = await AsyncStorage.getItem('token');
+
+    const userId = user.id || user._id;
+
+    const response = await api.get(`/event/user/${userId}`, {
+      headers: {
+        Authorization: `${token}`,
+      }
+    });
     return response.data;
   },
 
@@ -49,7 +56,7 @@ const eventsService = {
       return Promise.resolve(event || null);
     }
     
-    const response = await api.get(`/events/${id}`);
+    const response = await api.get(`/event/${id}`);
     return response.data;
   },
 
@@ -62,7 +69,7 @@ const eventsService = {
       };
       return Promise.resolve(newEvent);
     }
-    const response = await api.post('/events', eventData);
+    const response = await api.post('/event', eventData);
     return response.data;
   },
 
@@ -81,7 +88,7 @@ const eventsService = {
       return Promise.resolve(updatedEvent);
     }
     
-    const response = await api.put(`/events/${id}`, eventData);
+    const response = await api.put(`/event/${id}`, eventData);
     return response.data;
   },
 
@@ -90,7 +97,7 @@ const eventsService = {
       return Promise.resolve(true);
     }
     
-    await api.delete(`/events/${id}`);
+    await api.delete(`/event/${id}`);
     return true;
   },
 
@@ -98,12 +105,12 @@ const eventsService = {
     if (USE_MOCK) {
       return Promise.resolve(
         allEvents.filter(event => 
-          event.title.toLowerCase().includes(query.toLowerCase()) ||
+          event.name.toLowerCase().includes(query.toLowerCase()) ||
           event.description.toLowerCase().includes(query.toLowerCase())
         )
       );
     }
-    const response = await api.get(`/events/search?q=${query}`);
+    const response = await api.get(`/event/search?q=${query}`);
     return response.data;
   }
 };

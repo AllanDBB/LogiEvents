@@ -16,7 +16,7 @@ const OTP = require('../models/otp');
 const { sendAdminCode, sendVerificationCode } = require('../services/smsService');
 const { sendEmail } = require('../services/emailService');
 
-
+// Create an event
 router.post('/', requireAuth,  async (req, res) => {
     try {
         const { name, date, hour, location, description, price, capacity, category, img } = req.body;
@@ -42,7 +42,8 @@ router.post('/', requireAuth,  async (req, res) => {
             category,
             status: 'activo',
             createdBy: user._id,
-            image: img
+            image: img,
+            availableSpots: parseInt(capacity),
         });
 
         const savedEvent = await event.save();
@@ -66,12 +67,43 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get all events created by a user
-router.get('/created/:userId', requireAuth, async (req, res) => {
+// Get all events by user.
+router.get('/user/:userId', requireAuth, async (req, res) => {
     try {
         const userId = req.params.userId;
-        const events = await Event.find({ createdBy: userId }).populate('attendees', 'firstName lastName email phoneNumber role');
-        res.status(200).json(events);
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        let events;
+        if (user.role === 'admin') {
+            events = await Event.find({ createdBy: userId });
+        } else {
+            events = await Event.find({ attendees: userId });
+        }
+
+        const formattedEvents = events.map(event => {
+
+            const eventObj = event.toObject();
+            
+            if (eventObj.date instanceof Date) {
+                const dateString = eventObj.date.toISOString().split('T')[0]; 
+                const dateParts = dateString.split('-');
+                eventObj.date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`; 
+            } else if (typeof eventObj.date === 'string' && eventObj.date.includes('-')) {
+
+                const dateParts = eventObj.date.split('-');
+                eventObj.date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+            }
+            
+            return eventObj;
+        });
+        
+        res.status(200).json(formattedEvents);
+        
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -81,11 +113,23 @@ router.get('/created/:userId', requireAuth, async (req, res) => {
 router.get('/:eventId', async (req, res) => {
     try {
         const eventId = req.params.eventId;
-        const event = await Event.findById(eventId).populate('attendees', 'firstName lastName email phoneNumber role');
+        const event = await Event.findById(eventId);
         if (!event) {
             return res.status(404).json({ error: 'Event not found' });
         }
-        res.status(200).json(event);
+
+        const eventObj = event.toObject();
+
+        if (eventObj.date instanceof Date) {
+            const dateString = eventObj.date.toISOString().split('T')[0];
+            const dateParts = dateString.split('-');
+            eventObj.date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+        } else if (typeof eventObj.date === 'string' && eventObj.date.includes('-')) {
+            const dateParts = eventObj.date.split('-');
+            eventObj.date = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+        }
+
+        res.status(200).json(eventObj);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -95,7 +139,6 @@ router.get('/:eventId', async (req, res) => {
 router.put('/:eventId', requireAuth, async (req, res) => {
     try {
         const eventId = req.params.eventId;
-        const { name, date, location, description, price, ticketType, images, tags, capacity } = req.body;
         const user = await User.findById(req.user._id);
 
         if (!user) {
@@ -106,7 +149,7 @@ router.put('/:eventId', requireAuth, async (req, res) => {
             return res.status(403).json({ error: 'You do not have permission to update this event' });
         }
 
-        const event = await Event.findByIdAndUpdate(eventId, { name, date, location, description, price, ticketType, images, tags, capacity }, { new: true });
+        const event = await Event.findByIdAndUpdate(eventId, req.body, { new: true });
 
         if (!event) {
             return res.status(404).json({ error: 'Event not found' });

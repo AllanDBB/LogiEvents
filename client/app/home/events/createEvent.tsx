@@ -146,7 +146,7 @@ const CreateEvent = () => {
     try {
       const response = await createEvent(eventData, token);
       if (response._id !== undefined) {
-        router.push("/home/events/myEvents");
+        router.push("/home");
         return;
       }
       console.error("Error creando evento:", response.data);
@@ -158,7 +158,7 @@ const CreateEvent = () => {
 
 
   const handleEventCreated = () => {
-    router.push("/home/events/myEvents");
+    router.push("/home");
   };
 
   useEffect(() => {

@@ -1,18 +1,18 @@
 import api from './api';
 import type { User, UserUpdateData } from '@/models/user';
 import users from '@/mockups/users';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const USE_MOCK = true;
 
 const userService = {
   getCurrentUser: async (): Promise<User | null> => {
-    if (USE_MOCK) {
-      return Promise.resolve(users[1]);
-    }
-    
     try {
-      const response = await api.get('/users/me');
-      return response.data;
+      const userData = await AsyncStorage.getItem('user');
+      if (userData) {
+        return JSON.parse(userData);
+      }
+      return null;
     } catch (error) {
       console.error('Error getting current user:', error);
       return null;

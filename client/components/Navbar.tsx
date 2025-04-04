@@ -14,9 +14,10 @@ import MenuPopup from './menuPopUp';
 type NavbarProps = {
   children?: React.ReactNode;
   isLogged: boolean;
+  isAdmin?: boolean; 
 };
 
-function Navbar({ children, isLogged }: NavbarProps) {
+function Navbar({ children, isLogged, isAdmin = false }: NavbarProps) {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const { width } = useWindowDimensions();
@@ -63,11 +64,14 @@ function Navbar({ children, isLogged }: NavbarProps) {
           </Text>
         </TouchableOpacity>
         
-        {isLogged && <TouchableOpacity onPress={handleMyEventsClick}>
-          <Text style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}>
-            Eventos
-          </Text>
-        </TouchableOpacity>}
+        {/* Solo muestra el enlace 'Eventos' si el usuario está logueado y NO es admin */}
+        {isLogged && !isAdmin && (
+          <TouchableOpacity onPress={handleMyEventsClick}>
+            <Text style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}>
+              Eventos
+            </Text>
+          </TouchableOpacity>
+        )}
         
         <TouchableOpacity onPress={handlePoliciesClick}>
           <Text style={[styles.navLink, isDarkMode ? styles.darkText : styles.lightText]}>
@@ -80,21 +84,24 @@ function Navbar({ children, isLogged }: NavbarProps) {
   
   const renderActionButtons = () => (
     <View style={styles.btnSection}>
-      <TouchableOpacity 
-        style={[
-          styles.btnGeneral, 
-          styles.btn1, 
-          isDarkMode ? styles.darkBtn1 : styles.lightBtn1
-        ]}
-        onPress={handleMyEventsClick}
-      >
-        <Text style={[
-          styles.btnSectionText, 
-          isDarkMode ? styles.darkBtn1Text : styles.lightBtn1Text
-        ]}>
-          {isLogged ? 'Mis eventos' : 'Iniciar sesión'}
-        </Text>
-      </TouchableOpacity>
+      {/* Solo muestra el botón 'Mis eventos' si el usuario NO es admin */}
+      {!isAdmin && (
+        <TouchableOpacity 
+          style={[
+            styles.btnGeneral, 
+            styles.btn1, 
+            isDarkMode ? styles.darkBtn1 : styles.lightBtn1
+          ]}
+          onPress={handleMyEventsClick}
+        >
+          <Text style={[
+            styles.btnSectionText, 
+            isDarkMode ? styles.darkBtn1Text : styles.lightBtn1Text
+          ]}>
+            {isLogged ? 'Mis eventos' : 'Iniciar sesión'}
+          </Text>
+        </TouchableOpacity>
+      )}
       
       <TouchableOpacity 
         style={[
@@ -143,7 +150,8 @@ function Navbar({ children, isLogged }: NavbarProps) {
       <MenuPopup 
         visible={isMobileMenuVisible} 
         onClose={toggleMobileMenu} 
-        isLogged={isLogged} 
+        isLogged={isLogged}
+        isAdmin={isAdmin} // Pasamos la prop isAdmin al componente MenuPopup
       />
     </SafeAreaView>
   );
