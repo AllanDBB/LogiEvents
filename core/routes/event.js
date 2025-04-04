@@ -6,9 +6,16 @@ const User = require('../models/user');
 const Media = require('../models/media');
 const upload = require('../middlewares/multer');
 const cloudinary = require('cloudinary').v2;
-
+const bcryptjs = require('bcryptjs');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const bodyHandler = require('../handlers/bodyHandler');
 const router = express.Router();
 const requireAuth = passport.authenticate('jwt', { session: false });
+const Ticket = require('../models/ticket');
+const OTP = require('../models/otp');
+const { sendAdminCode, sendVerificationCode } = require('../services/smsService');
+const { sendEmail } = require('../services/emailService');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -106,7 +113,7 @@ router.get('/:eventId', async (req, res) => {
 });
 
 // Update an event by ID
-router.put('/:eventId', requireAuth, bodyHandler, async (req, res) => {
+router.put('/:eventId', requireAuth, async (req, res) => {
     try {
         const eventId = req.params.eventId;
         const { name, date, location, description, price, ticketType, images, tags, capacity } = req.body;
