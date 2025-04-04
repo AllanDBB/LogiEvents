@@ -24,7 +24,7 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
 
     try {
         const { name, date, hour, location, description, price, capacity, category } = req.body;
-
+        
         const user = await User.findById(req.user._id);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
@@ -44,9 +44,9 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
             url: req.file.path,
             type: 'image'
         });
+
         await media.save();
 
-        // Date formatting is dd/mm/yyyy so we need to convert it to yyyy-mm-dd
         const dateParts = date.split('/');
         const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
         const dateObj = new Date(formattedDate);
@@ -55,24 +55,32 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
         }
         const dateFix = dateObj.toISOString().split('T')[0];
 
+        console.log(dateFix);
+
         const event = new Event({
             name,
             date: dateFix,
             hour,
             location,
             description,
-            price,
-            image: media._id,
-            capacity,
-            createdBy: user._id
+            price: parseFloat(price),
+            capacity: parseInt(capacity),
+            category,
+            status: 'activo',
+            createdBy: user._id,
+            image: media._id
         });
         
-        console.log(event);
-        
-        await event.save();
+
+        const savedEvent = await event.save();
+        console.log('savedEvent', savedEvent);
+        await media.updateOne({ $push: { events: event._id } });
+
         res.status(201).json(event);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error("ERROR COMPLETO ===>", error);
+        res.status(400).json({ error: error.message, full: error });
+
     }
 });
 
