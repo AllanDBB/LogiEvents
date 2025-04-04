@@ -115,6 +115,36 @@ export const resetPassword = async (data) => {
   }
 }
 
+export const createEvent = async (data, token) => {
+  try {
+
+      const response = await api.post('/event', data, {
+          headers: {
+              Authorization: `${token}`,
+              'Content-Type': 'multipart/form-data', 
+          },
+      });
+      return response.data;
+  } catch (error) {
+      console.error('Error al crear el evento:', error);
+      throw error;
+  }
+};
+
+export const getAllEventsCreatedByUser  = async (userId, token) => {
+  try {
+
+    const response = await api.get(`/event/user/${userId}`, {
+      headers: {
+        Authorization: `${token}`, 
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener eventos creados por el usuario:', error);
+    throw error;
+  }
+}
 
 
 export default api;
