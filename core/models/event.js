@@ -16,6 +16,7 @@ const EventSchema = new mongoose.Schema({
         enum: ['activo', 'agotado', 'pasado', 'cancelado', 'proximamente'],
         default: 'active'
     },
+    category: { type: String, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
