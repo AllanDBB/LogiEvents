@@ -20,7 +20,7 @@ const { sendAdminCode, sendVerificationCode } = require('../services/smsService'
 const { sendEmail } = require('../services/emailService');
 
 // Create a new event
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => {
 
     try {
         const { name, date, hour, location, description, price, image, capacity } = req.body;
