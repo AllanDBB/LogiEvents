@@ -120,8 +120,7 @@ export const createEvent = async (data, token) => {
 
       const response = await api.post('/event', data, {
           headers: {
-              Authorization: `${token}`,
-              'Content-Type': 'multipart/form-data', 
+              Authorization: `${token}`
           },
       });
       return response.data;

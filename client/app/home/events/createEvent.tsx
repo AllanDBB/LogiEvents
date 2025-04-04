@@ -7,6 +7,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { createEvent } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
+
 const CreateEvent = () => {
   const [eventName, setEventName] = useState('');
   const [location, setLocation] = useState('');
@@ -26,6 +28,7 @@ const CreateEvent = () => {
   const [capacityError, setCapacityError] = useState('');
   const [priceError, setPriceError] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
+  const [imageUrl, setImageUrl] = useState("");
 
   const router = useRouter();
 
@@ -84,105 +87,75 @@ const CreateEvent = () => {
 
   const handleCreateEvent = async () => {
     let hasErrors = false;
-
-    // Validaciones de campos
-    if (!eventName) {
-      setEventNameError('Por favor ingresa un nombre para el evento');
-      hasErrors = true;
-    } else {
-      setEventNameError('');
-    }
-
-    if (!location) {
-      setLocationError('Por favor ingresa una ubicación');
-      hasErrors = true;
-    } else {
-      setLocationError('');
-    }
-
-    if (!category) {
-      setCategoryError('Por favor selecciona una categoría');
-      hasErrors = true;
-    } else {
-      setCategoryError('');
-    }
-
-    if (!time) {
-      setTimeError('Por favor selecciona una hora');
-      hasErrors = true;
-    } else {
-      setTimeError('');
-    }
-
-    if (!capacity) {
-      setCapacityError('Por favor ingresa la capacidad');
-      hasErrors = true;
-    } else {
-      setCapacityError('');
-    }
-
-    if (!price) {
-      setPriceError('Por favor ingresa un precio');
-      hasErrors = true;
-    } else {
-      setPriceError('');
-    }
-
-    if (!description) {
-      setDescriptionError('Por favor ingresa una descripción');
-      hasErrors = true;
-    } else {
-      setDescriptionError('');
-    }
-
-    if (dateError) {
-      hasErrors = true;
-    }
-
-    if (hasErrors) {
-      return;
-    }
-
-    const eventData = new FormData();
-    eventData.append('name', eventName);
-    eventData.append('location', location);
-    eventData.append('category', category);
-    eventData.append('capacity', capacity ? parseInt(capacity) : null);
-    eventData.append('price', price ? parseFloat(price) : null);
-    eventData.append('date', formattedDate);
-    eventData.append('hour', time);
-    eventData.append('description', description);
-
+  
+    if (!eventName) { setEventNameError('Por favor ingresa un nombre para el evento'); hasErrors = true; } else { setEventNameError(''); }
+    if (!location) { setLocationError('Por favor ingresa una ubicación'); hasErrors = true; } else { setLocationError(''); }
+    if (!category) { setCategoryError('Por favor selecciona una categoría'); hasErrors = true; } else { setCategoryError(''); }
+    if (!time) { setTimeError('Por favor selecciona una hora'); hasErrors = true; } else { setTimeError(''); }
+    if (!capacity) { setCapacityError('Por favor ingresa la capacidad'); hasErrors = true; } else { setCapacityError(''); }
+    if (!price) { setPriceError('Por favor ingresa un precio'); hasErrors = true; } else { setPriceError(''); }
+    if (!description) { setDescriptionError('Por favor ingresa una descripción'); hasErrors = true; } else { setDescriptionError(''); }
+    if (dateError) { hasErrors = true; }
+    if (hasErrors) { return; }
+  
+    let imageUrl = "";
+  
     if (image) {
-      const preparedFile = await prepareNativeFile(image);
-      eventData.append('eventCover', preparedFile);
+      try {
+        const formData = new FormData();
+        const file = await prepareNativeFile(image);
+        formData.append("file", file);
+        formData.append("upload_preset", "ml_default");
+  
+        const cloudinaryResponse = await fetch("https://api.cloudinary.com/v1_1/diz3l6xyg/image/upload", {
+          method: "POST",
+          body: formData,
+        });
+  
+        const cloudinaryData = await cloudinaryResponse.json();
+        imageUrl = cloudinaryData.secure_url;
+        console.log("Imagen subida a Cloudinary:", imageUrl);
+      } catch (error) {
+        console.error("Error subiendo imagen a Cloudinary:", error);
+        return;
+      }
     } else {
-      console.error('No image selected');
+      console.error("No image selected");
       return;
     }
-
+  
+    const eventData = {
+      name: eventName,
+      location: location,
+      category: category,
+      capacity: capacity ? parseInt(capacity) : null,
+      price: price ? parseFloat(price) : null,
+      date: formattedDate,
+      hour: time,
+      description: description,
+      img: imageUrl,
+    };
+  
     let token = null;
     try {
       token = await AsyncStorage.getItem("token");
     } catch (error) {
       console.error("Error al obtener el token:", error);
     }
-
+  
     try {
       const response = await createEvent(eventData, token);
-      console.log('asd', response);
       if (response._id !== undefined) {
         router.push("/home/events/myEvents");
-    
         return;
       }
-
-      console.error('Error creating event:', response.data);
-      
+      console.error("Error creando evento:", response.data);
     } catch (error) {
-      console.error('Error al crear el evento:', error);
+      console.error("Error al crear el evento:", error);
     }
   };
+  
+
 
   const handleEventCreated = () => {
     router.push("/home/events/myEvents");
