@@ -34,6 +34,20 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
             return res.status(403).json({ error: 'You do not have permission to create an event' });
         }
 
+        if (!req.file) {
+            return res.status(400).json({ error: 'Event cover image is required' });
+        }
+
+        const media = new Media({
+            title: name,
+            description: description || 'Event cover image',
+            url: req.file.path,
+            type: 'image'
+        });
+        await media.save();
+
+
+
         const event = new Event({
             name,
             date,
@@ -41,7 +55,7 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
             location,
             description,
             price,
-            image,
+            image: media._id,
             capacity,
             createdBy: user._id
         });
