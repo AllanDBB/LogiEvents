@@ -23,7 +23,7 @@ const { sendEmail } = require('../services/emailService');
 router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => {
 
     try {
-        const { name, date, hour, location, description, price, image, capacity } = req.body;
+        const { name, date, hour, location, description, price, capacity, category } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user) {
@@ -46,11 +46,18 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
         });
         await media.save();
 
-
+        // Date formatting is dd/mm/yyyy so we need to convert it to yyyy-mm-dd
+        const dateParts = date.split('/');
+        const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+        const dateObj = new Date(formattedDate);
+        if (isNaN(dateObj.getTime())) {
+            return res.status(400).json({ error: 'Invalid date format' });
+        }
+        const dateFix = dateObj.toISOString().split('T')[0];
 
         const event = new Event({
             name,
-            date,
+            date: dateFix,
             hour,
             location,
             description,
@@ -59,7 +66,9 @@ router.post('/', requireAuth, upload.single('eventCover') , async (req, res) => 
             capacity,
             createdBy: user._id
         });
-
+        
+        console.log(event);
+        
         await event.save();
         res.status(201).json(event);
     } catch (error) {
