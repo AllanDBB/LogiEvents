@@ -51,8 +51,8 @@ export default function Register() {
         throw new Error('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número');
       }
 
-      if (!/^[A-Z]{4}\d{4}$/.test(formData.businessID)) {
-        throw new Error('El Business ID debe tener 4 letras seguidas de 4 números (ej: ABCD1234)');
+      if (!/^[A-Z]{2}\d{4}$/.test(formData.businessID)) {
+        throw new Error('El Business ID debe tener 2 letras seguidas de 4 números (ej: AB1234)');
       }
 
       let phoneNumber = formData.phoneNumber;
@@ -156,12 +156,12 @@ export default function Register() {
           <Text style={styles.label}>Business ID</Text>
           <TextInput
             style={styles.input}
-            placeholder="ABCD1234"
+            placeholder="AB1234"
             placeholderTextColor="#A9A9A9"
             keyboardType="default"
             value={formData.businessID}
             onChangeText={(text) => handleChange('businessID', text.toUpperCase())}
-            maxLength={8}
+            maxLength={6}
           />
 
           <Text style={styles.label}>Dirección</Text>
