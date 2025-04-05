@@ -18,6 +18,7 @@ const bodyHandler = require('../handlers/bodyHandler');
 const secret = process.env.JWT_SECRET;
 const requireAuth = passport.authenticate('jwt', { session: false });
 
+
 // Change password logged in user
 router.post('/change-password', requireAuth, async (req, res) => {
 
@@ -178,30 +179,61 @@ router.delete('/:id', requireAuth, async (req, res) => {
 );
 
 
-// Make user admin
-router.patch('/make-admin/:id', requireAuth, async (req, res) => {
-
+// Make user admin given an email
+router.post('/make-admin', async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const { godEmail, godPassword, newAdminEmail } = req.body;
         
-        // Validate that authorized user is a god user
-        if (req.user.role !== 'god'){
-            throw new Error('You are not authorized to perform this action');
+        // Verificar que todos los campos necesarios estén presentes
+        if (!godEmail || !godPassword || !newAdminEmail) {
+            return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Validate that user is not already an adminAún 
-        if (!user){
-            throw new Error('User not found');
+        // Buscar el usuario GOD por email
+        const godUser = await User.findOne({ email: godEmail });
+        if (!godUser) {
+            return res.status(404).json({ error: 'Admin GOD not found' });
         }
-
-        user.role = 'admin';
-
-        await user.save();
-
-        res.status(200).json(user);
-    }
-    catch (error) {
-        res.status(400).send(error.message);
+        
+        // Verificar que el usuario GOD tenga el rol correcto
+        if (godUser.role !== 'god') {
+            return res.status(403).json({ error: 'You are not authorized to perform this action' });
+        }
+        
+        // Verificar la contraseña del usuario GOD
+        const isPasswordValid = await bcryptjs.compare(godPassword, godUser.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        
+        // Buscar el usuario que se convertirá en administrador
+        const userToAdmin = await User.findOne({ email: newAdminEmail });
+        if (!userToAdmin) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Verificar que el usuario no sea ya un administrador
+        if (userToAdmin.role === 'admin' || userToAdmin.role === 'god') {
+            return res.status(400).json({ error: 'User is already an admin or god' });
+        }
+        
+        // Cambiar el rol del usuario a administrador
+        userToAdmin.role = 'admin';
+        await userToAdmin.save();
+        
+        // Responder con éxito
+        return res.status(201).json({ 
+            success: true,
+            message: 'User promoted to admin successfully',
+            user: {
+                id: userToAdmin._id,
+                email: userToAdmin.email,
+                role: userToAdmin.role
+            }
+        });
+    } catch (error) {
+        console.error('Error making user admin:', error);
+        return res.status(500).json({ error: error.message });
     }
 });
 

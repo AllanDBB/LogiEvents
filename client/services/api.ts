@@ -225,4 +225,19 @@ export const confirmReservation = async (eventId, data, token) => {
   }
 };
 
+export const makeAdmin = async (godEmail, godPassword, newAdminEmail) => {
+  try {
+    const response = await api.post('/user/make-admin', { 
+      godEmail, 
+      godPassword, 
+      newAdminEmail 
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al hacer admin:', error);
+    throw error;
+  }
+}
+
+
 export default api;
