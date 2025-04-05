@@ -59,10 +59,9 @@ router.post('/register', upload.single('profilePicture'), async (req, res) => {
             throw new Error('Phone number must be 12 digits');
         }
 
-        // Business ID validation (4 letters + 4 numbers)
-        const businessIDRegex = new RegExp("^[A-Z]{4}[0-9]{4}$");
+        const businessIDRegex = new RegExp("^[A-Z]{2}[0-9]{4}$");
         if (!businessIDRegex.test(businessID)) {
-            throw new Error('Business ID must be 4 letters followed by 4 numbers');
+            throw new Error('Business ID must be 2 letters followed by 4 numbers');
         }
 
         // Email validation
@@ -100,7 +99,11 @@ router.post('/register', upload.single('profilePicture'), async (req, res) => {
         });
 
         // Generate and save OTP
-        const OTPCode = crypto.randomInt(100000, 999999);
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let OTPCode = '';
+        for (let i = 0; i < 6; i++) {
+            OTPCode += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        }
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
@@ -233,9 +236,7 @@ router.post('/login', async (req, res) => {
 
 // Forgot password
 router.post('/forgot-password', async (req, res) => {
-
     try {
-
         const check = ['email'];
         bodyHandler(check, req.body);
 
@@ -246,8 +247,13 @@ router.post('/forgot-password', async (req, res) => {
             throw new Error('User does not exist');
         }
 
-        // Generate OTP code (6 letters)
-        const OTPCode = crypto.randomInt(100000, 999999);
+        // Generate OTP code (6 random uppercase letters)
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let OTPCode = '';
+        for (let i = 0; i < 6; i++) {
+            OTPCode += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        }
+        
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
@@ -259,7 +265,7 @@ router.post('/forgot-password', async (req, res) => {
         });
 
         await newOTP.save();
-        await sendVerificationCode(user.phoneNumber, newOTP.code);
+        await sendVerificationCode(user.phoneNumber, OTPCode);
 
         // Send OTP to email
         await sendEmail({

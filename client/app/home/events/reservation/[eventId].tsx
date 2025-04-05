@@ -157,9 +157,8 @@ const Reservation = () => {
     );
   };
 
-  // Validación del código
   const isVerificationValid = () => {
-    return verificationCode.length === 6 && /^\d+$/.test(verificationCode);
+    return verificationCode.length === 6 && /^[A-Z]+$/.test(verificationCode);
   };
 
   // Validaciones de campos
@@ -538,8 +537,8 @@ const Reservation = () => {
                 <Text style={styles.formLabel}>Código de verificación*</Text>
                 <TextInput 
                   style={[styles.input, styles.verificationInput, verificationError && styles.inputError]}
-                  placeholder="Ingresa el código de 6 dígitos"
-                  keyboardType="number-pad"
+                  placeholder="Ingresa el código de 6 letras"
+                  autoCapitalize="characters"
                   value={verificationCode}
                   onChangeText={setVerificationCode}
                   maxLength={6}

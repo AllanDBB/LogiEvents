@@ -255,10 +255,10 @@ router.post('/:eventId/confirm-delete', requireAuth, async (req, res) => {
         res.status(200).json({ message: 'Event deleted successfully' });
     }
     catch (error) {
+        console.error("❌ ERROR COMPLETO ===>", error);
         res.status(400).json({ error: error.message });
     }
 });
-
 
 // Reserve a ticket for an event
 router.post('/:eventId/reserve', requireAuth, async (req, res) => {
@@ -278,8 +278,13 @@ router.post('/:eventId/reserve', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Not enough spots available' });
         }
 
-        // Generate OTP
-        const OTPCode = crypto.randomInt(100000, 999999);
+        // Generate OTP with 6 random uppercase letters
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let OTPCode = '';
+        for (let i = 0; i < 6; i++) {
+            OTPCode += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        }
+        
         const expiresAt = new Date();
         expiresAt.setMinutes(expiresAt.getMinutes() + 15);
 
